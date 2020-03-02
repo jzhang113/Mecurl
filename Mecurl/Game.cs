@@ -102,7 +102,7 @@ namespace Mecurl
                 MessagePanel.AddMessage($"You arrive at level {_level+1}");
             }
 
-            var mapgen = new SimpleMapgen(10, 10, _level);
+            var mapgen = new SimpleMapgen(EngineConsts.MAP_WIDTH, EngineConsts.MAP_HEIGHT, _level);
             MapHandler = mapgen.Generate();
             MapHandler.Refresh();
             _level++;

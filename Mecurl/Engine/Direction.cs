@@ -1,6 +1,6 @@
 ﻿namespace Engine
 {
-    internal static class Direction
+    public static class Direction
     {
         public static readonly Loc N = new Loc(0, -1);
         public static readonly Loc E = new Loc(1, 0);
