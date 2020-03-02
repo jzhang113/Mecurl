@@ -46,16 +46,16 @@ namespace Engine.Map
             {
                 for (int x = 0; x < Map.Width; x++)
                 {
-                    int d = 0;
-                    while (true)
+                    int d;
+                    int maxClearance = Math.Min(Map.Width - x, Map.Height - y);
+
+                    for (d = 0; d < maxClearance; d++)
                     {
                         for (int c = 0; c <= d; c++)
                         {
                             if (Map.Field[x + c, y].IsWall || Map.Field[x, y + c].IsWall)
                                 goto done;
                         }
-
-                        d++;
                     }
 
                     done:

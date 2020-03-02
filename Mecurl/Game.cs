@@ -3,6 +3,7 @@ using Engine;
 using Engine.Drawing;
 using Engine.Map;
 using Mecurl.Actors;
+using Mecurl.CityGen;
 using Mecurl.State;
 using Mecurl.UI;
 using System;
@@ -63,7 +64,7 @@ namespace Mecurl
             Terminal.Set(
                 $"window: size={EngineConsts.SCREEN_WIDTH + 2}x{EngineConsts.SCREEN_HEIGHT + 2}," +
                 $"cellsize=auto, title='GeomanceRL';");
-            Terminal.Set("font: square.ttf, size = 24x24;");
+            Terminal.Set("font: square.ttf, size = 8x8;");
             Terminal.Set("text font: square.ttf, size = 16x16;");
 
             Terminal.Refresh();
@@ -102,7 +103,7 @@ namespace Mecurl
                 MessagePanel.AddMessage($"You arrive at level {_level+1}");
             }
 
-            var mapgen = new SimpleMapgen(EngineConsts.MAP_WIDTH, EngineConsts.MAP_HEIGHT, _level);
+            var mapgen = new CityMapgen(EngineConsts.MAP_WIDTH, EngineConsts.MAP_HEIGHT, _level);
             MapHandler = mapgen.Generate();
             MapHandler.Refresh();
             _level++;
