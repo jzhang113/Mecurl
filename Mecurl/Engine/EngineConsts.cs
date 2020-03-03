@@ -3,14 +3,14 @@
     internal static class EngineConsts
     {
         // FOV and lighting stuff
-        public const float MIN_VISIBLE_LIGHT_LEVEL = 0.25f;
+        public const float MIN_VISIBLE_LIGHT_LEVEL = 0.05f;
         public const double LIGHT_DECAY = 0.1;
 
         // UI constants
-        public const int MAP_WIDTH = 60;
-        public const int MAP_HEIGHT = 60;
-        public const int MAPVIEW_WIDTH = 41;
-        public const int MAPVIEW_HEIGHT = 25;
+        public const int MAP_WIDTH = 300;
+        public const int MAP_HEIGHT = 300;
+        public const int MAPVIEW_WIDTH = 60;
+        public const int MAPVIEW_HEIGHT = 60;
         public const int SIDEBAR_WIDTH = 10;
         public const int MESSAGE_HEIGHT = 5;
         public const int SPELLBAR_HEIGHT = 2;

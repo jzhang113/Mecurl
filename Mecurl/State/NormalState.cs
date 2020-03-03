@@ -35,15 +35,13 @@ namespace Mecurl.State
 
                 #region Movement Keys
                 case NormalInput.MoveW:
-                    player.Facing = player.Facing.Left().Left();
-                    return Option.None<ICommand>();
+                    return Option.Some<ICommand>(new MoveCommand(player, player.Pos + player.Facing.Left().Left()));
                 case NormalInput.MoveS:
                     return Option.Some<ICommand>(new MoveCommand(player, player.Pos - player.Facing));
                 case NormalInput.MoveN:
                     return Option.Some<ICommand>(new MoveCommand(player, player.Pos + player.Facing));
                 case NormalInput.MoveE:
-                    player.Facing = player.Facing.Right().Right();
-                    return Option.None<ICommand>();
+                    return Option.Some<ICommand>(new MoveCommand(player, player.Pos + player.Facing.Right().Right()));
                 case NormalInput.MoveNW:
                     return Option.Some<ICommand>(new MoveCommand(player, player.Pos + Direction.NW));
                 case NormalInput.MoveNE:

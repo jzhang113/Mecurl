@@ -576,8 +576,8 @@ namespace Engine.Map
                         continue;
 
                     Tile tile = Field[newX, newY];
-                    if (!tile.IsExplored)
-                        continue;
+                    //if (!tile.IsExplored)
+                    //    continue;
 
                     if (tile.IsVisible)
                     {
