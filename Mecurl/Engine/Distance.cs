@@ -59,5 +59,12 @@ namespace Engine
             int dy = Math.Abs(pos1.Y - pos2.Y);
             return Math.Max(dx, dy);
         }
+
+        public static int Manhatten(in Loc pos1, in Loc pos2)
+        {
+            int dx = Math.Abs(pos1.X - pos2.X);
+            int dy = Math.Abs(pos1.Y - pos2.Y);
+            return dx + dy;
+        }
     }
 }

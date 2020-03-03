@@ -9,10 +9,10 @@ namespace Engine.Map
 {
     public class MapHandler
     {
+        public Option<Loc> Exit { get; internal set; }
         public int Width { get; }
         public int Height { get; }
         public int Level { get; }
-        public Option<Loc> Exit { get; internal set; }
 
         internal Field Field { get; }
         internal int[,] Clearance { get; }
@@ -576,8 +576,8 @@ namespace Engine.Map
                         continue;
 
                     Tile tile = Field[newX, newY];
-                    //if (!tile.IsExplored)
-                    //    continue;
+                    if (!tile.IsExplored)
+                        continue;
 
                     if (tile.IsVisible)
                     {

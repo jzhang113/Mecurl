@@ -47,7 +47,10 @@ namespace Engine.Map
                 for (int x = 0; x < Map.Width; x++)
                 {
                     int d;
+                    const int clearanceLimit = 10; // limit maxclearance for perf
+
                     int maxClearance = Math.Min(Map.Width - x, Map.Height - y);
+                    maxClearance = Math.Min(clearanceLimit, maxClearance);
 
                     for (d = 0; d < maxClearance; d++)
                     {

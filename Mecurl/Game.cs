@@ -64,7 +64,7 @@ namespace Mecurl
             Terminal.Set(
                 $"window: size={EngineConsts.SCREEN_WIDTH + 2}x{EngineConsts.SCREEN_HEIGHT + 2}," +
                 $"cellsize=auto, title='GeomanceRL';");
-            Terminal.Set("font: square.ttf, size = 8x8;");
+            Terminal.Set("font: square.ttf, size = 16x16;");
             Terminal.Set("text font: square.ttf, size = 16x16;");
 
             Terminal.Refresh();

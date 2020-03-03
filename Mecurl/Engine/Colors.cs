@@ -65,5 +65,13 @@ namespace Engine
             }
             return Color.FromArgb(f(0), f(8), f(4));
         }
+
+        public static Color RandomColor()
+        {
+            int h = BaseGame.VisRand.Next(360);
+            double s = BaseGame.VisRand.NextDouble() * 0.4 + 0.5;
+            double l = BaseGame.VisRand.NextDouble() * 0.25 + 0.2;
+            return FromHSL(h, s, l);
+        }
     }
 }

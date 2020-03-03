@@ -57,7 +57,7 @@ namespace Mecurl.Actors
 
 
             Terminal.Color(Color);
-
+            Terminal.Layer(2);
             foreach (Part p in Parts)
             {
                 if (Facing == Direction.N)
@@ -129,6 +129,7 @@ namespace Mecurl.Actors
                     System.Console.WriteLine($"actor {Id} has invalid facing");
                 }
             }
+            Terminal.Layer(1);
         }
     }
 }

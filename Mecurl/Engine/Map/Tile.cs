@@ -8,7 +8,8 @@ namespace Engine.Map
     {
         public int X { get; }
         public int Y { get; }
-        public Color Color { get; }
+        public Color Color { get; internal set; }
+        public char Symbol { get; internal set; }
 
         public float Light
         {
@@ -43,6 +44,7 @@ namespace Engine.Map
             Y = y;
             IsWall = true;
             Color = color;
+            Symbol = '.';
         }
 
         public void Draw(LayerInfo layer)
@@ -58,7 +60,7 @@ namespace Engine.Map
             else
             {
                 // Terminal.Color(Colors.Floor);
-                layer.Put(dispX, dispY, '.');
+                layer.Put(dispX, dispY, Symbol);
             }
         }
     }
