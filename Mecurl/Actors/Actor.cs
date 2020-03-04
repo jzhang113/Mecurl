@@ -22,9 +22,9 @@ namespace Mecurl.Actors
             PartHandler = new PartHandler(initialFacing, new List<Part>()
             {
                 new Part(3, 3, new Loc(0, 0), initialFacing,              
-                    new char[9] { '/', ' ', '\\' , '█', '@', '█', '\\', '█', '/' } ),
-                new Part(3, 2, new Loc(0, -1), initialFacing,
-                    new char[6] { '*', '*', '*', ' ', '*', ' '}),
+                    new char[9] { '1', ' ', '2' , '█', '@', '█', '3', '█', '4' } ),
+                new Part(4, 2, new Loc(0, -1), initialFacing,
+                    new char[8] { '1', '2', '3', '4', ' ', ' ', '5', ' '}),
             });
         }
 
@@ -58,16 +58,8 @@ namespace Mecurl.Actors
 
         public override void Draw(LayerInfo layer)
         {
-
             if (!ShouldDraw)
                 return;
-
-            if (IsDead)
-            {
-                Terminal.Color(Swatch.DbOldBlood);
-                layer.Put(Pos.X - Camera.X, Pos.Y - Camera.Y, '%');
-                return;
-            }
 
             Terminal.Color(Color);
             PartHandler.Draw(layer, Pos);            

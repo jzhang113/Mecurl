@@ -26,24 +26,48 @@ namespace Mecurl.Commands
 
             // Don't walk into walls, unless the Actor is currently phasing or we are already
             // inside a wall (to prevent getting stuck).
-
-            Rectangle sourceBounds = Source.PartHandler.Bounds;
-            Rectangle newBounds = new Rectangle(
-                sourceBounds.X + _nextPos.X, sourceBounds.Y + _nextPos.Y,
-                sourceBounds.Width, sourceBounds.Height);
-
-            for (int x = newBounds.Left; x < newBounds.Right; x++)
+            foreach (var p in Source.PartHandler)
             {
-                for (int y = newBounds.Top; y < newBounds.Bottom; y++)
+                for (int x = 0; x < p.Bounds.Width; x++)
                 {
-                    if (Game.MapHandler.Field[x, y].IsWall)
+                    for (int y = 0; y < p.Bounds.Height; y++)
                     {
-                        // Don't penalize the player for walking into walls, but monsters should wait if 
-                        // they will walk into a wall.
-                        if (Source == Game.Player)
-                            Game.PrevCancelled = true;
+                        // here we are looping over the *bounding box*
+                        // we need to go from the bounding box locations to the actual pieces to
+                        // check if they are passable
 
-                        return Option.None<ICommand>();
+                        // note that if the facing is N/S, then p.Bounds.Width == p.Width, so the
+                        // boundsIndex correspond to the indices of p.Structure before adjustment
+                        // however, if the facing is W/E, then the dimensions are flipped, so we
+                        // need to compute the correct corresponding index of p.Structure and then
+                        // adjust
+                        int boundsIndex = -1;
+                        if (p.Facing == Direction.N || p.Facing == Direction.S)
+                        {
+                            boundsIndex = x + y * p.Width;
+                        }
+                        else if (p.Facing == Direction.W || p.Facing == Direction.E)
+                        {
+                            boundsIndex = x * p.Width + y;
+                        }
+
+                        if (p.IsPassable(boundsIndex))
+                        {
+                            continue;
+                        }
+                        
+                        int newX = x + p.Bounds.Left + _nextPos.X;
+                        int newY = y + p.Bounds.Top + _nextPos.Y;
+
+                        if (Game.MapHandler.Field[newX, newY].IsWall)
+                        {
+                            // Don't penalize the player for walking into walls, but monsters should wait if 
+                            // they will walk into a wall.
+                            if (Source == Game.Player)
+                                Game.PrevCancelled = true;
+
+                            return Option.None<ICommand>();
+                        }
                     }
                 }
             }

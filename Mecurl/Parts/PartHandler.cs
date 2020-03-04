@@ -2,12 +2,13 @@
 using Engine;
 using Engine.Drawing;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Drawing;
 
 namespace Mecurl.Parts
 {
-    public class PartHandler
+    public class PartHandler : IEnumerable<Part>
     {
         public ICollection<Part> PartList { get; }
         public Rectangle Bounds { get; private set; }
@@ -84,5 +85,17 @@ namespace Mecurl.Parts
 
             Terminal.Layer(1);
         }
+
+        #region IEnumerable overrides
+        public IEnumerator<Part> GetEnumerator()
+        {
+            return PartList.GetEnumerator();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
+        }
+        #endregion
     }
 }

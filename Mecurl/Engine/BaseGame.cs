@@ -25,7 +25,12 @@ namespace Engine
         static BaseGame()
         {
             Rand = new Random();
-            VisRand = new Random();
+            int s1 = Rand.Next();
+            int s2 = Rand.Next();
+            Console.WriteLine($"seed: {s1}, {s2}");
+
+            Rand = new Random(s1);
+            VisRand = new Random(s2);
         }
 
         public static void Exit()

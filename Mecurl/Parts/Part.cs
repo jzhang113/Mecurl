@@ -31,6 +31,18 @@ namespace Mecurl.Parts
             UpdateBounds();
         }
 
+        private void UpdateBounds()
+        {
+            if (Facing == Direction.N || Facing == Direction.S)
+            {
+                Bounds = new Rectangle(Center.X - Width / 2, Center.Y - Height / 2, Width, Height);
+            }
+            else if (Facing == Direction.E || Facing == Direction.W)
+            {
+                Bounds = new Rectangle(Center.X - Height / 2, Center.Y - Width / 2, Height, Width);
+            }
+        }
+
         internal void RotateLeft()
         {
             Facing = Facing.Left().Left();
@@ -45,15 +57,45 @@ namespace Mecurl.Parts
             Bounds = Rectangle.FromLTRB(-Bounds.Bottom + 1, Bounds.Left, -Bounds.Top + 1, Bounds.Right);
         }
 
-        private void UpdateBounds()
+        internal bool IsPassable(int x)
         {
-            if (Facing == Direction.N || Facing == Direction.S)
+            int y = Adjust(x);
+            return Structure[y] == ' ';
+        }
+
+        internal bool IsMergable(int x)
+        {
+            int y = Adjust(x);
+            return Structure[y] == '/' || Structure[y] == '\\';
+        }
+
+        internal char GetPiece(int x)
+        {
+            int y = Adjust(x);
+            return Structure[y];
+        }
+
+        internal int Adjust(int idx)
+        {
+            if (Facing == Direction.N)
             {
-                Bounds = new Rectangle(Center.X - Width / 2, Center.Y - Height / 2, Width, Height);
+                return idx;
             }
-            else if (Facing == Direction.E || Facing == Direction.W)
+            else if (Facing == Direction.S)
             {
-                Bounds = new Rectangle(Center.X - Height / 2, Center.Y - Width / 2, Height, Width);
+                return Structure.Length - idx - 1;
+            }
+            else if (Facing == Direction.W)
+            {
+                return Width + idx / Width * Width - idx % Width - 1;
+            }
+            else if (Facing == Direction.E)
+            {
+                return Structure.Length - Width - idx / Width * Width + idx % Width;
+            }
+            else
+            {
+                return -1;
             }
         }
 
@@ -66,7 +108,7 @@ namespace Mecurl.Parts
             }
 
             // otherwise we have to check carefully
-            for (int x = Bounds.Left ; x < Bounds.Right; x++)
+            for (int x = Bounds.Left; x < Bounds.Right; x++)
             {
                 for (int y = Bounds.Top; y < Bounds.Bottom; y++)
                 {
@@ -104,60 +146,33 @@ namespace Mecurl.Parts
 
         internal void Draw(LayerInfo layer, Loc pos)
         {
-            if (Facing == Direction.N)
+
+            if (Facing == Direction.N || Facing == Direction.S)
             {
                 for (int i = 0; i < Structure.Length; i++)
                 {
-                    if (Structure[i] == ' ')
+                    if (IsPassable(i))
                     {
                         continue;
                     }
                     layer.Put(
                         Bounds.Left + i % Width + pos.X - Camera.X,
                         Bounds.Top + i / Width + pos.Y - Camera.Y,
-                        Structure[i]);
+                        GetPiece(i));
                 }
             }
-            else if (Facing == Direction.S)
+            else if (Facing == Direction.W || Facing == Direction.E)
             {
                 for (int i = 0; i < Structure.Length; i++)
                 {
-                    if (Structure[Structure.Length - i - 1] == ' ')
-                    {
-                        continue;
-                    }
-                    layer.Put(
-                        Bounds.Left + i % Width + pos.X - Camera.X,
-                        Bounds.Top + i / Width + pos.Y - Camera.Y,
-                        Structure[Structure.Length - i - 1]);
-                }
-            }
-            else if (Facing == Direction.W)
-            {
-                for (int i = 0; i < Structure.Length; i++)
-                {
-                    if (Structure[i] == ' ')
+                    if (IsPassable(i))
                     {
                         continue;
                     }
                     layer.Put(
                         Bounds.Left + i / Width + pos.X - Camera.X,
                         Bounds.Top + i % Width + pos.Y - Camera.Y,
-                        Structure[i]);
-                }
-            }
-            else if (Facing == Direction.E)
-            {
-                for (int i = 0; i < Structure.Length; i++)
-                {
-                    if (Structure[Structure.Length - i - 1] == ' ')
-                    {
-                        continue;
-                    }
-                    layer.Put(
-                        Bounds.Left + i / Width + pos.X - Camera.X,
-                        Bounds.Top + i % Width + pos.Y - Camera.Y,
-                        Structure[Structure.Length - i - 1]);
+                        GetPiece(i));
                 }
             }
         }
