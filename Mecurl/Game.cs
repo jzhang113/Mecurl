@@ -66,6 +66,10 @@ namespace Mecurl
                 $"cellsize=auto, title='GeomanceRL';");
             Terminal.Set("font: square.ttf, size = 12x12;");
             Terminal.Set("text font: square.ttf, size = 12x12;");
+            Terminal.Set("0xE000: FontTiles/arn.png, size = 12x12, transparent=black");
+            Terminal.Set("0xE001: FontTiles/are.png, size = 12x12, transparent=black");
+            Terminal.Set("0xE002: FontTiles/ars.png, size = 12x12, transparent=black");
+            Terminal.Set("0xE003: FontTiles/arw.png, size = 12x12, transparent=black");
 
             Terminal.Refresh();
             Run();

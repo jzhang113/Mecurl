@@ -55,9 +55,9 @@
         public static RotateChar vt = hz.Right;
         public static RotateChar sl = new RotateChar('\\', '/');
         public static RotateChar sr = sl.Right;
-        public static RotateChar arw = new RotateChar('<', '^', '>', 'v');
-        public static RotateChar arn = arw.Right;
+        public static RotateChar arn = new RotateChar((char)0xE000, (char)0xE001, (char)0xE002, (char)0xE003);
         public static RotateChar are = arn.Right;
         public static RotateChar ars = are.Right;
+        public static RotateChar arw = ars.Right;
     }
 }

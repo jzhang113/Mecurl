@@ -13,6 +13,18 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="FontTiles\are.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="FontTiles\arn.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="FontTiles\ars.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="FontTiles\arw.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="BearLibTerminal.dll">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
