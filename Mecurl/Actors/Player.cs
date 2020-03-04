@@ -1,5 +1,6 @@
 ﻿using BearLib;
 using Engine;
+using Mecurl.Commands;
 using Mecurl.Parts;
 using Mecurl.State;
 using Optional;
@@ -25,12 +26,7 @@ namespace Mecurl.Actors
                     new TargetZone(TargetShape.Range, 10, 1), targets =>
                     {
                         Game.StateHandler.PopState();
-
-                        foreach (Loc loc in targets)
-                        {
-                            Game.MapHandler.Field[loc].Color = Color.Red;
-                        }
-                        return Option.None<ICommand>();
+                        return Option.Some<ICommand>(new AttackCommand(this, 400, 10, targets));
                     }));
 
                 return Option.None<ICommand>();
