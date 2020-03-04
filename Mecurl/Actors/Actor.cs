@@ -4,33 +4,17 @@ using Engine.Drawing;
 using Mecurl.Commands;
 using Mecurl.Parts;
 using Optional;
-using System;
-using System.Collections.Generic;
 using System.Drawing;
-
-using static Mecurl.Parts.RotateCharLiterals;
 
 namespace Mecurl.Actors
 {
     public class Actor : BaseActor
     {
-        public PartHandler PartHandler { get; }
+        public PartHandler PartHandler { get; protected set; }
         public Loc Facing => PartHandler.Facing;
 
         public Actor(in Loc pos, int hp, char symbol, Color color) : base(pos, hp, symbol, color)
         {
-            Loc initialFacing = Direction.N;
-
-            PartHandler = new PartHandler(initialFacing, new List<Part>()
-            {
-                new Part(3, 3, new Loc(0, 0), initialFacing,
-                    new RotateChar[9] { sr, b1, sl , b4, at, b3, sl, b2, sr } ) { Name = "Core" },
-                new Part(2, 5, new Loc(-2, 0), initialFacing,
-                    new RotateChar[10] { arn, arn, arn, arn, arn, arn, arn, arn, arn, arn}) { Name = "Treads" },
-                new Part(2, 5, new Loc(3, 0), initialFacing,
-                    new RotateChar[10] { arn, arn, arn, arn, arn, arn, arn, arn, arn, arn}) { Name = "Treads" },
-
-            });
         }
 
         public override Option<ICommand> TriggerDeath()
@@ -67,7 +51,7 @@ namespace Mecurl.Actors
                 return;
 
             Terminal.Color(Color);
-            PartHandler.Draw(layer, Pos);            
+            PartHandler.Draw(layer, Pos);
         }
     }
 }

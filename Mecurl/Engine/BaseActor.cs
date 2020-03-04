@@ -21,7 +21,7 @@ namespace Engine
         public int MaxHealth { get; }
         public int Health { get; set; }
 
-        public int Speed { get; protected set; } = 1;
+        public int Speed { get; protected set; } = 100;
         public bool IsDead => Health <= 0;
 
         protected BaseActor(in Loc pos, int hp, char symbol, Color color)

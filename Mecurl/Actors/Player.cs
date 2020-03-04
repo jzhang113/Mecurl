@@ -1,6 +1,13 @@
-﻿using Engine;
+﻿using BearLib;
+using Engine;
+using Mecurl.Parts;
+using Mecurl.State;
 using Optional;
+using System;
+using System.Collections.Generic;
 using System.Drawing;
+
+using static Mecurl.Parts.RotateCharLiterals;
 
 namespace Mecurl.Actors
 {
@@ -9,7 +16,39 @@ namespace Mecurl.Actors
         public Player(in Loc pos) : base(pos, 100, '@', Color.Wheat)
         {
             Name = "Player";
-            Speed = 2;
+            Loc initialFacing = Direction.N;
+
+            Func<Option<ICommand>> fire = () =>
+            {
+                Console.WriteLine("firin' the nukes");
+                Game.StateHandler.PushState(new TargettingState(Game.MapHandler, this,
+                    new TargetZone(TargetShape.Range, 10, 1), targets =>
+                    {
+                        Game.StateHandler.PopState();
+
+                        foreach (Loc loc in targets)
+                        {
+                            Game.MapHandler.Field[loc].Color = Color.Red;
+                        }
+                        return Option.None<ICommand>();
+                    }));
+
+                return Option.None<ICommand>();
+            };
+            Input.InputMapping.UpdateMapping(Terminal.TK_Z, fire);
+
+            PartHandler = new PartHandler(initialFacing, new List<Part>()
+            {
+                new Part(3, 3, new Loc(0, 0), initialFacing,
+                    new RotateChar[9] { sr, b1, sl , b4, at, b3, sl, b2, sr },
+                    () => Option.None<ICommand>() ) { Name = "Core" },
+                new Part(2, 5, new Loc(-2, 0), initialFacing,
+                    new RotateChar[10] { arn, arn, arn, arn, arn, arn, arn, arn, arn, arn},
+                    fire) { Name = "Treads" },
+                new Part(2, 5, new Loc(3, 0), initialFacing,
+                    new RotateChar[10] { arn, arn, arn, arn, arn, arn, arn, arn, arn, arn},
+                    () => Option.None<ICommand>() ) { Name = "Treads" },
+            });
         }
 
         // Commands processed in main loop

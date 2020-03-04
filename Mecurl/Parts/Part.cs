@@ -1,6 +1,8 @@
 ﻿using Engine;
 using Engine.Drawing;
+using Optional;
 using System;
+using System.Collections.Generic;
 using System.Drawing;
 
 namespace Mecurl.Parts
@@ -22,10 +24,14 @@ namespace Mecurl.Parts
         public Loc Center { get; private set; }
         public Rectangle Bounds { get; private set; }
 
-        public Part(int width, int height, Loc center, Loc facing, RotateChar[] structure)
+        public Func<Option<ICommand>> Activate { get; }
+
+        public Part(int width, int height, Loc center, Loc facing, RotateChar[] structure, Func<Option<ICommand>> activate)
         {
             Id = GlobalId++;
             Structure = structure;
+            Activate = activate;
+
             Width = width;
             Height = height;
             Center = center;

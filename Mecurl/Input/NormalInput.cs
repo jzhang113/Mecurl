@@ -42,6 +42,11 @@ namespace Mecurl.Input
                 return action;
             }
 
+            if (_actionMap.TryGetValue(key, out var func))
+            {
+                func();
+            }
+
             return NormalInput.None;
         }
     }

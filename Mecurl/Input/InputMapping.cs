@@ -1,4 +1,7 @@
 ﻿using BearLib;
+using Engine;
+using Optional;
+using System;
 using System.Collections.Generic;
 
 namespace Mecurl.Input
@@ -6,6 +9,8 @@ namespace Mecurl.Input
     internal static partial class InputMapping
     {
         private static readonly KeyMap _keyMap;
+        private static readonly IDictionary<int, Func<Option<ICommand>>> _actionMap;
+        private static readonly IDictionary<Func<Option<ICommand>>, int> _actionMapReverse;
 
         static InputMapping()
         {
@@ -101,6 +106,24 @@ namespace Mecurl.Input
                     }
                 },
             };
+
+            _actionMap = new Dictionary<int, Func<Option<ICommand>>>();
+            _actionMapReverse = new Dictionary<Func<Option<ICommand>>, int>();
+        }
+
+        internal static void UpdateMapping(int key, Func<Option<ICommand>> action)
+        {
+            if (_actionMapReverse.TryGetValue(action, out int existing))
+            {
+                _actionMap.Remove(existing);
+                _actionMap.Add(key, action);
+                _actionMapReverse[action] = key;
+            }
+            else
+            {
+                _actionMap.Add(key, action);
+                _actionMapReverse.Add(action, key);
+            }
         }
     }
 }
