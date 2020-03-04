@@ -43,13 +43,11 @@ namespace Mecurl.State
                 case NormalInput.MoveE:
                     return Option.Some<ICommand>(new MoveCommand(player, player.Pos + player.Facing.Right().Right()));
                 case NormalInput.MoveNW:
-                    return Option.Some<ICommand>(new MoveCommand(player, player.Pos + Direction.NW));
+                    player.RotateLeft();
+                    return Option.None<ICommand>();
                 case NormalInput.MoveNE:
-                    return Option.Some<ICommand>(new MoveCommand(player, player.Pos + Direction.NE));
-                case NormalInput.MoveSW:
-                    return Option.Some<ICommand>(new MoveCommand(player, player.Pos + Direction.SW));
-                case NormalInput.MoveSE:
-                    return Option.Some<ICommand>(new MoveCommand(player, player.Pos + Direction.SE));
+                    player.RotateRight();
+                    return Option.None<ICommand>();
                 case NormalInput.Wait:
                     return Option.Some<ICommand>(new WaitCommand(player));
                 #endregion

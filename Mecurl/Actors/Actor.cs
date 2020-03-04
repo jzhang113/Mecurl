@@ -4,6 +4,7 @@ using Engine.Drawing;
 using Mecurl.Commands;
 using Mecurl.Parts;
 using Optional;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 
@@ -11,17 +12,20 @@ namespace Mecurl.Actors
 {
     public class Actor : BaseActor
     {
-        public Loc Facing { get; set; }
-        public ICollection<Part> Parts { get; }
+        public PartHandler PartHandler { get; }
+        public Loc Facing => PartHandler.Facing;
 
         public Actor(in Loc pos, int hp, char symbol, Color color) : base(pos, hp, symbol, color)
         {
-            Facing = Direction.N;
-            Parts = new List<Part>()
+            Loc initialFacing = Direction.N;
+
+            PartHandler = new PartHandler(initialFacing, new List<Part>()
             {
-                new Part() { Name = "Core", Structure = new char[3, 3] { { '/', '█', '\\' }, { '█', '@', '█' }, { '\\', '█', '/' } } },
-                new Part() { Name = "Shield", Structure = new char[5, 1] { { '*' }, { '*' }, { '*' }, { '*' }, { '*' } }, AttachPos = new Loc(0, -2) },
-            };
+                new Part(3, 3, new Loc(0, 0), initialFacing,              
+                    new char[9] { '/', ' ', '\\' , '█', '@', '█', '\\', '█', '/' } ),
+                new Part(3, 2, new Loc(0, -1), initialFacing,
+                    new char[6] { '*', '*', '*', ' ', '*', ' '}),
+            });
         }
 
         public override Option<ICommand> TriggerDeath()
@@ -42,6 +46,16 @@ namespace Mecurl.Actors
             return Option.Some<ICommand>(new WaitCommand(this));
         }
 
+        internal void RotateLeft()
+        {
+            PartHandler.RotateLeft();
+        }
+
+        internal void RotateRight()
+        {
+            PartHandler.RotateRight();
+        }
+
         public override void Draw(LayerInfo layer)
         {
 
@@ -55,81 +69,8 @@ namespace Mecurl.Actors
                 return;
             }
 
-
             Terminal.Color(Color);
-            Terminal.Layer(2);
-            foreach (Part p in Parts)
-            {
-                if (Facing == Direction.N)
-                {
-                    int topleftX = p.AttachPos.X - p.Structure.GetLength(0) / 2;
-                    int topleftY = p.AttachPos.Y - p.Structure.GetLength(1) / 2;
-
-                    for (int x = 0; x < p.Structure.GetLength(0); x++)
-                    {
-                        for (int y = 0; y < p.Structure.GetLength(1); y++)
-                        {
-                            layer.Put(
-                                topleftX + x + Pos.X - Camera.X,
-                                topleftY + y + Pos.Y - Camera.Y,
-                                p.Structure[x, y]);
-                        }
-                    }
-                }
-                else if (Facing == Direction.S)
-                {
-                    int topleftX = -p.AttachPos.X - p.Structure.GetLength(0) / 2;
-                    int topleftY = -p.AttachPos.Y - p.Structure.GetLength(1) / 2;
-
-                    for (int x = 0; x < p.Structure.GetLength(0); x++)
-                    {
-                        for (int y = 0; y < p.Structure.GetLength(1); y++)
-                        {
-                            layer.Put(
-                                topleftX + x + Pos.X - Camera.X,
-                                topleftY + y + Pos.Y - Camera.Y,
-                                p.Structure[x, y]);
-                        }
-                    }
-                }
-                else if (Facing == Direction.E)
-                {
-                    int topleftX = -p.AttachPos.Y - p.Structure.GetLength(1) / 2;
-                    int topleftY = p.AttachPos.X - p.Structure.GetLength(0) / 2;
-
-                    for (int x = 0; x < p.Structure.GetLength(0); x++)
-                    {
-                        for (int y = 0; y < p.Structure.GetLength(1); y++)
-                        {
-                            layer.Put(
-                                topleftX + y + Pos.X - Camera.X,
-                                topleftY + x + Pos.Y - Camera.Y,
-                                p.Structure[x, y]);
-                        }
-                    }
-                }
-                else if (Facing == Direction.W)
-                {
-                    int topleftX = p.AttachPos.Y - p.Structure.GetLength(1) / 2;
-                    int topleftY = -p.AttachPos.X - p.Structure.GetLength(0) / 2;
-
-                    for (int x = 0; x < p.Structure.GetLength(0); x++)
-                    {
-                        for (int y = 0; y < p.Structure.GetLength(1); y++)
-                        {
-                            layer.Put(
-                                topleftX + y + Pos.X - Camera.X,
-                                topleftY + x + Pos.Y - Camera.Y,
-                                p.Structure[x, y]);
-                        }
-                    }
-                }
-                else
-                {
-                    System.Console.WriteLine($"actor {Id} has invalid facing");
-                }
-            }
-            Terminal.Layer(1);
+            PartHandler.Draw(layer, Pos);            
         }
     }
 }
