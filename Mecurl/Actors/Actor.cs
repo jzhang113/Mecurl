@@ -8,6 +8,8 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 
+using static Mecurl.Parts.RotateCharLiterals;
+
 namespace Mecurl.Actors
 {
     public class Actor : BaseActor
@@ -22,9 +24,12 @@ namespace Mecurl.Actors
             PartHandler = new PartHandler(initialFacing, new List<Part>()
             {
                 new Part(3, 3, new Loc(0, 0), initialFacing,              
-                    new char[9] { '1', ' ', '2' , '█', '@', '█', '3', '█', '4' } ),
-                new Part(4, 2, new Loc(0, -1), initialFacing,
-                    new char[8] { '1', '2', '3', '4', ' ', ' ', '5', ' '}),
+                    new RotateChar[9] { sr, b1, sl , b4, at, b3, sl, b2, sr } ),
+                new Part(2, 5, new Loc(-2, 0), initialFacing,
+                    new RotateChar[10] { arn, arn, arn, arn, arn, arn, arn, arn, arn, arn}),
+                new Part(2, 5, new Loc(3, 0), initialFacing,
+                    new RotateChar[10] { arn, arn, arn, arn, arn, arn, arn, arn, arn, arn}),
+
             });
         }
 

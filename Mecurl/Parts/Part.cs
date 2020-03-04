@@ -12,7 +12,7 @@ namespace Mecurl.Parts
 
         public string Name { get; set; }
 
-        public char[] Structure { get; }
+        public RotateChar[] Structure { get; }
         public int Width { get; }
         public int Height { get; }
 
@@ -20,7 +20,7 @@ namespace Mecurl.Parts
         public Loc Center { get; private set; }
         public Rectangle Bounds { get; private set; }
 
-        public Part(int width, int height, Loc center, Loc facing, char[] structure)
+        public Part(int width, int height, Loc center, Loc facing, RotateChar[] structure)
         {
             Id = GlobalId++;
             Structure = structure;
@@ -48,6 +48,11 @@ namespace Mecurl.Parts
             Facing = Facing.Left().Left();
             Center = new Loc(Center.Y, -Center.X);
             Bounds = Rectangle.FromLTRB(Bounds.Top, -Bounds.Right + 1, Bounds.Bottom, -Bounds.Left + 1);
+         
+            for (int i = 0; i < Structure.Length; i++)
+            {
+                Structure[i] = Structure[i].Left;
+            }
         }
 
         internal void RotateRight()
@@ -55,24 +60,29 @@ namespace Mecurl.Parts
             Facing = Facing.Right().Right();
             Center = new Loc(-Center.Y, Center.X);
             Bounds = Rectangle.FromLTRB(-Bounds.Bottom + 1, Bounds.Left, -Bounds.Top + 1, Bounds.Right);
+
+            for (int i = 0; i < Structure.Length; i++)
+            {
+                Structure[i] = Structure[i].Right;
+            }
         }
 
         internal bool IsPassable(int x)
         {
-            int y = Adjust(x);
-            return Structure[y] == ' ';
+            char c = GetPiece(x);
+            return c == ' ';
         }
 
         internal bool IsMergable(int x)
         {
-            int y = Adjust(x);
-            return Structure[y] == '/' || Structure[y] == '\\';
+            char c = GetPiece(x);
+            return c == '/' || c == '\\';
         }
 
         internal char GetPiece(int x)
         {
             int y = Adjust(x);
-            return Structure[y];
+            return Structure[y].Char;
         }
 
         internal int Adjust(int idx)
@@ -121,11 +131,11 @@ namespace Mecurl.Parts
 
                     int x0 = x - Bounds.Left;
                     int y0 = y - Bounds.Top;
-                    char piece0 = Structure[x0 + y0 * Bounds.Width];
+                    char piece0 = Structure[x0 + y0 * Bounds.Width].Char;
 
                     int x1 = x - other.Bounds.Left;
                     int y1 = y - other.Bounds.Top;
-                    char piece1 = other.Structure[x1 + y1 * other.Bounds.Width];
+                    char piece1 = other.Structure[x1 + y1 * other.Bounds.Width].Char;
 
                     // joining logic
                     if (piece0 == ' ' || piece1 == ' ' ||
