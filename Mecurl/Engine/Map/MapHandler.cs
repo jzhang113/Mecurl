@@ -179,6 +179,22 @@ namespace Engine.Map
             return new Loc(xPos, yPos);
         }
 
+        public Option<Loc> GetRandomOpenPoint(int minClearance, int maxTries)
+        {
+            for (int i = 0; i < maxTries; i++)
+            {
+                int xPos = BaseGame.Rand.Next(1, Width - 1);
+                int yPos = BaseGame.Rand.Next(1, Height - 1);
+
+                if (Clearance[xPos, yPos] >= minClearance)
+                {
+                    return Option.Some(new Loc(xPos, yPos));
+                }
+            }
+
+            return Option.None<Loc>();
+        }
+
         public IEnumerable<LocCost> GetPathToPlayer(Loc pos)
         {
             System.Diagnostics.Debug.Assert(Field.IsValid(pos));

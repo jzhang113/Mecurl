@@ -202,7 +202,33 @@ namespace Mecurl.CityGen
 
         protected override void PlaceActors()
         {
-            Game.Player.Pos = Map.GetRandomOpenPoint();
+            // find a sufficiently large place to place the mech
+            Rectangle playerBounds = ((Actors.Actor)Game.Player).PartHandler.Bounds;
+            int minClearance = Math.Max(playerBounds.Width, playerBounds.Height);
+
+            Map.GetRandomOpenPoint(minClearance, 50).Match(
+                some: pos =>
+                {
+                    // adjust the player position so that the top left corner of playerBounds is on
+                    // the returned position
+                    Game.Player.Pos = new Loc(pos.X - playerBounds.Left, pos.Y - playerBounds.Top);
+                },
+                none: () =>
+                {
+                    // if we can't find a place to drop the player, just pick a random spot and
+                    // destroy any offending building tiles
+                    Loc pos = Map.GetRandomOpenPoint();
+                    Game.Player.Pos = pos;
+
+                    for (int x = playerBounds.Left; x < playerBounds.Right; x++)
+                    {
+                        for (int y = playerBounds.Top; y < playerBounds.Bottom; y++)
+                        {
+                            Map.Field[x + pos.X, y + pos.Y].IsWall = false;
+                        }
+                    }
+                });
+
             Map.AddActor(Game.Player);
         }
 
@@ -294,7 +320,7 @@ namespace Mecurl.CityGen
                 prevRoad.Angle + Rand.NextDouble() * Math.PI / 4 - Math.PI / 8, prevRoad.Width, prevRoad.LastSplitL + 1, prevRoad.LastSplitR + 1);
 
             const double baseSplitProb = 0.4;
-            double splitProb = baseSplitProb  + 0.2 * (double)prevRoad.LastSplitL;
+            double splitProb = baseSplitProb + 0.2 * (double)prevRoad.LastSplitL;
             if (Rand.NextDouble() < splitProb)
             {
                 newRoads[1] = GenerateBranch(prevRoad, -Math.PI / 2);
