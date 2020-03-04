@@ -56,7 +56,7 @@ namespace Engine.Map
                     {
                         for (int c = 0; c <= d; c++)
                         {
-                            if (Map.Field[x + c, y].IsWall || Map.Field[x, y + c].IsWall)
+                            if (Map.Field[x + c, y + d].IsWall || Map.Field[x + d, y + c].IsWall)
                                 goto done;
                         }
                     }
