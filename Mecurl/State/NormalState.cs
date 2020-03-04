@@ -49,6 +49,12 @@ namespace Mecurl.State
                     player.RotateRight();
                     return Option.None<ICommand>();
                 case NormalInput.Wait:
+
+                    foreach (var p in player.PartHandler)
+                    {
+                        p.Health -= 10;
+                    }
+
                     return Option.Some<ICommand>(new WaitCommand(player));
                 #endregion
 

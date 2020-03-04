@@ -23,12 +23,12 @@ namespace Mecurl.Actors
 
             PartHandler = new PartHandler(initialFacing, new List<Part>()
             {
-                new Part(3, 3, new Loc(0, 0), initialFacing,              
-                    new RotateChar[9] { sr, b1, sl , b4, at, b3, sl, b2, sr } ),
+                new Part(3, 3, new Loc(0, 0), initialFacing,
+                    new RotateChar[9] { sr, b1, sl , b4, at, b3, sl, b2, sr } ) { Name = "Core" },
                 new Part(2, 5, new Loc(-2, 0), initialFacing,
-                    new RotateChar[10] { arn, arn, arn, arn, arn, arn, arn, arn, arn, arn}),
+                    new RotateChar[10] { arn, arn, arn, arn, arn, arn, arn, arn, arn, arn}) { Name = "Treads" },
                 new Part(2, 5, new Loc(3, 0), initialFacing,
-                    new RotateChar[10] { arn, arn, arn, arn, arn, arn, arn, arn, arn, arn}),
+                    new RotateChar[10] { arn, arn, arn, arn, arn, arn, arn, arn, arn, arn}) { Name = "Treads" },
 
             });
         }

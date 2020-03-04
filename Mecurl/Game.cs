@@ -13,7 +13,6 @@ namespace Mecurl
 {
     public class Game : BaseGame
     {
-
         public static MessagePanel MessagePanel { get; private set; }
 
         private static bool _playing;
@@ -37,7 +36,6 @@ namespace Mecurl
             _messageLayer = new LayerInfo("Message", 1,
                 EngineConsts.SIDEBAR_WIDTH + 2, EngineConsts.MAPVIEW_HEIGHT + 2,
                 EngineConsts.MAPVIEW_WIDTH, EngineConsts.MESSAGE_HEIGHT);
-
             _mainLayer = new LayerInfo("Main", 11, 0, 0,
                EngineConsts.SCREEN_WIDTH + 2, EngineConsts.SCREEN_HEIGHT + 2);
 

@@ -11,6 +11,8 @@ namespace Mecurl.Parts
         internal int Id { get; }
 
         public string Name { get; set; }
+        public double MaxHealth { get; set; }
+        public double Health { get; set; }
 
         public RotateChar[] Structure { get; }
         public int Width { get; }
@@ -29,6 +31,9 @@ namespace Mecurl.Parts
             Center = center;
             Facing = facing;
             UpdateBounds();
+
+            MaxHealth = 100;
+            Health = MaxHealth;
         }
 
         private void UpdateBounds()
