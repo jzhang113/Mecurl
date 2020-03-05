@@ -5,27 +5,19 @@ namespace Mecurl.Input
     internal enum NormalInput
     {
         None,
-        AttackE,
-        AttackS,
-        AttackN,
-        AttackW,
-        AttackNW,
-        AttackNE,
-        AttackSW,
-        AttackSE,
-        MoveE,
-        MoveS,
-        MoveN,
-        MoveW,
-        MoveNW,
-        MoveNE,
-        MoveSW,
-        MoveSE,
-        OpenMenu,
-        Get,
-        Throw,
+        Backward,
+        Forward,
+        StrafeRight,
+        StrafeLeft,
+        TurnLeft,
+        TurnRight,
+        WeaponGroup1,
+        WeaponGroup2,
+        WeaponGroup3,
+        WeaponGroup4,
+        WeaponGroup5,
+        WeaponGroup6,
         Wait,
-        Cast
     }
 
     internal static partial class InputMapping
@@ -40,11 +32,6 @@ namespace Mecurl.Input
             else if (_keyMap.NormalMap.None.TryGetValue(key, out NormalInput action))
             {
                 return action;
-            }
-
-            if (_actionMap.TryGetValue(key, out var func))
-            {
-                func();
             }
 
             return NormalInput.None;

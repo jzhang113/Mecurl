@@ -22,31 +22,37 @@ namespace Mecurl.Actors
 
             Option<ICommand> fire()
             {
+                WeaponGroup wg = ((Actor)Game.Player).WeaponGroup;
+
                 Console.WriteLine("firin' the nukes");
                 Game.StateHandler.PushState(new TargettingState(Game.MapHandler, this, Measure.Euclidean,
                     new TargetZone(TargetShape.Range, 20, 2), targets =>
                     {
                         Game.StateHandler.PopState();
-
+                        wg.Advance(1);
                         var explosionAnim = Option.Some<IAnimation>(new ExplosionAnimation(targets, Colors.Fire));
                         return Option.Some<ICommand>(new AttackCommand(this, 400, 10, targets, explosionAnim));
                     }));
 
                 return Option.None<ICommand>();
             }
-            Input.InputMapping.UpdateMapping(Terminal.TK_Z, fire);
+
+            WeaponGroup = new WeaponGroup();
 
             PartHandler = new PartHandler(initialFacing, new List<Part>()
             {
                 new Part(3, 3, new Loc(0, 0), initialFacing,
-                    new RotateChar[9] { sr, b1, sl , b4, at, b3, sl, b2, sr },
-                    () => Option.None<ICommand>() ) { Name = "Core" },
-                new Part(2, 5, new Loc(-2, 0), initialFacing,
-                    new RotateChar[10] { arn, arn, arn, arn, arn, arn, arn, arn, arn, arn},
-                    fire) { Name = "Treads" },
-                new Part(2, 5, new Loc(3, 0), initialFacing,
-                    new RotateChar[10] { arn, arn, arn, arn, arn, arn, arn, arn, arn, arn},
-                    () => Option.None<ICommand>() ) { Name = "Treads" },
+                    new RotateChar[9] { sr, b1, sl , b4, at, b3, sl, b2, sr }) { Name = "Core" },
+                new Part(1, 2, new Loc(-2, 0), initialFacing,
+                    new RotateChar[2] { arn, arn}) { Name = "Leg" },
+                new Part(1, 2, new Loc(2, 0), initialFacing,
+                    new RotateChar[2] { arn, arn}) { Name = "Leg" },
+                new Weapon(3, 3, new Loc(2, 2), initialFacing,
+                    new RotateChar[9] { sr, b4, b2, b4, b4, b2, b2, b2, sr },
+                    WeaponGroup, 1, fire) { Name = "Missiles (Right)" },
+                new Weapon(3, 3, new Loc(-2, 2), initialFacing,
+                    new RotateChar[9] { b2, b4, sl, b2, b4, b4, sl, b2, b2 },
+                    WeaponGroup, 1, fire) { Name = "Missiles (Left)" },
             });
         }
 

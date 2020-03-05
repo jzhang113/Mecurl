@@ -13,6 +13,8 @@ namespace Mecurl.Actors
     public class Actor : BaseActor
     {
         public PartHandler PartHandler { get; protected set; }
+        public WeaponGroup WeaponGroup { get; protected set; }
+
         public Direction Facing => PartHandler.Facing;
 
         public Actor(in Loc pos, int hp, char symbol, Color color) : base(pos, hp, symbol, color)

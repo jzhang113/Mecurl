@@ -9,8 +9,6 @@ namespace Mecurl.Input
     internal static partial class InputMapping
     {
         private static readonly KeyMap _keyMap;
-        private static readonly IDictionary<int, Func<Option<ICommand>>> _actionMap;
-        private static readonly IDictionary<Func<Option<ICommand>>, int> _actionMapReverse;
 
         static InputMapping()
         {
@@ -20,38 +18,36 @@ namespace Mecurl.Input
                 {
                     None = new Dictionary<int, NormalInput>()
                     {
-                        [Terminal.TK_LEFT] =        NormalInput.MoveW,
-                        [Terminal.TK_KP_4] =        NormalInput.MoveW,
-                        [Terminal.TK_H] =           NormalInput.MoveW,
-                        [Terminal.TK_DOWN] =        NormalInput.MoveS,
-                        [Terminal.TK_KP_2] =        NormalInput.MoveS,
-                        [Terminal.TK_J] =           NormalInput.MoveS,
-                        [Terminal.TK_UP] =          NormalInput.MoveN,
-                        [Terminal.TK_KP_8] =        NormalInput.MoveN,
-                        [Terminal.TK_K] =           NormalInput.MoveN,
-                        [Terminal.TK_RIGHT] =       NormalInput.MoveE,
-                        [Terminal.TK_KP_6] =        NormalInput.MoveE,
-                        [Terminal.TK_L] =           NormalInput.MoveE,
-                        [Terminal.TK_KP_7] =        NormalInput.MoveNW,
-                        [Terminal.TK_Y] =           NormalInput.MoveNW,
-                        [Terminal.TK_KP_9] =        NormalInput.MoveNE,
-                        [Terminal.TK_U] =           NormalInput.MoveNE,
-                        [Terminal.TK_KP_1] =        NormalInput.MoveSW,
-                        [Terminal.TK_B] =           NormalInput.MoveSW,
-                        [Terminal.TK_KP_3] =        NormalInput.MoveSE,
-                        [Terminal.TK_N] =           NormalInput.MoveSE,
+                        [Terminal.TK_LEFT] =        NormalInput.StrafeLeft,
+                        [Terminal.TK_KP_4] =        NormalInput.StrafeLeft,
+                        [Terminal.TK_H] =           NormalInput.StrafeLeft,
+                        [Terminal.TK_DOWN] =        NormalInput.Backward,
+                        [Terminal.TK_KP_2] =        NormalInput.Backward,
+                        [Terminal.TK_J] =           NormalInput.Backward,
+                        [Terminal.TK_UP] =          NormalInput.Forward,
+                        [Terminal.TK_KP_8] =        NormalInput.Forward,
+                        [Terminal.TK_K] =           NormalInput.Forward,
+                        [Terminal.TK_RIGHT] =       NormalInput.StrafeRight,
+                        [Terminal.TK_KP_6] =        NormalInput.StrafeRight,
+                        [Terminal.TK_L] =           NormalInput.StrafeRight,
+                        [Terminal.TK_KP_7] =        NormalInput.TurnLeft,
+                        [Terminal.TK_Y] =           NormalInput.TurnLeft,
+                        [Terminal.TK_KP_9] =        NormalInput.TurnRight,
+                        [Terminal.TK_U] =           NormalInput.TurnRight,
                         [Terminal.TK_KP_5] =        NormalInput.Wait,
                         [Terminal.TK_PERIOD] =      NormalInput.Wait,
-                        [Terminal.TK_COMMA] =       NormalInput.Get,
-                        [Terminal.TK_ESCAPE] =      NormalInput.OpenMenu,
-                        [Terminal.TK_1] =           NormalInput.Cast,
-                        [Terminal.TK_2] =           NormalInput.Cast,
-                        [Terminal.TK_3] =           NormalInput.Cast,
-                        [Terminal.TK_4] =           NormalInput.Cast,
-                        [Terminal.TK_5] =           NormalInput.Cast,
-                        [Terminal.TK_6] =           NormalInput.Cast
+                        [Terminal.TK_1] =           NormalInput.WeaponGroup1,
+                        [Terminal.TK_2] =           NormalInput.WeaponGroup2,
+                        [Terminal.TK_3] =           NormalInput.WeaponGroup3,
+                        [Terminal.TK_4] =           NormalInput.WeaponGroup4,
+                        [Terminal.TK_5] =           NormalInput.WeaponGroup5,
+                        [Terminal.TK_6] =           NormalInput.WeaponGroup6,
                     },
                     Shift = new Dictionary<int, NormalInput>()
+                    {
+                        [Terminal.TK_LEFT] =        NormalInput.TurnLeft,
+                        [Terminal.TK_RIGHT] =       NormalInput.TurnRight,
+                    }
                 },
                 TargettingMap = new KeyMap.StateMap<TargettingInput>()
                 {
@@ -106,24 +102,6 @@ namespace Mecurl.Input
                     }
                 },
             };
-
-            _actionMap = new Dictionary<int, Func<Option<ICommand>>>();
-            _actionMapReverse = new Dictionary<Func<Option<ICommand>>, int>();
-        }
-
-        internal static void UpdateMapping(int key, Func<Option<ICommand>> action)
-        {
-            if (_actionMapReverse.TryGetValue(action, out int existing))
-            {
-                _actionMap.Remove(existing);
-                _actionMap.Add(key, action);
-                _actionMapReverse[action] = key;
-            }
-            else
-            {
-                _actionMap.Add(key, action);
-                _actionMapReverse.Add(action, key);
-            }
         }
     }
 }

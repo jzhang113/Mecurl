@@ -24,13 +24,10 @@ namespace Mecurl.Parts
         public Loc Center { get; private set; }
         public Rectangle Bounds { get; private set; }
 
-        public Func<Option<ICommand>> Activate { get; }
-
-        public Part(int width, int height, Loc center, Direction facing, RotateChar[] structure, Func<Option<ICommand>> activate)
+        public Part(int width, int height, Loc center, Direction facing, RotateChar[] structure)
         {
             Id = GlobalId++;
             Structure = structure;
-            Activate = activate;
 
             Width = width;
             Height = height;

@@ -3,6 +3,7 @@ using Engine.Drawing;
 using Mecurl.Actors;
 using Mecurl.Commands;
 using Mecurl.Input;
+using Mecurl.Parts;
 using Optional;
 using System;
 
@@ -34,36 +35,38 @@ namespace Mecurl.State
                     return Option.None<ICommand>();
 
                 #region Movement Keys
-                case NormalInput.MoveW:
+                case NormalInput.StrafeLeft:
                     return Option.Some<ICommand>(new MoveCommand(player, player.Pos + player.Facing.Left().Left()));
-                case NormalInput.MoveS:
+                case NormalInput.Backward:
                     return Option.Some<ICommand>(new MoveCommand(player, player.Pos - player.Facing));
-                case NormalInput.MoveN:
+                case NormalInput.Forward:
                     return Option.Some<ICommand>(new MoveCommand(player, player.Pos + player.Facing));
-                case NormalInput.MoveE:
+                case NormalInput.StrafeRight:
                     return Option.Some<ICommand>(new MoveCommand(player, player.Pos + player.Facing.Right().Right()));
-                case NormalInput.MoveNW:
+                case NormalInput.TurnLeft:
                     player.RotateLeft();
                     return Option.None<ICommand>();
-                case NormalInput.MoveNE:
+                case NormalInput.TurnRight:
                     player.RotateRight();
                     return Option.None<ICommand>();
                 case NormalInput.Wait:
-
-                    foreach (var p in player.PartHandler)
-                    {
-                        p.Health -= 10;
-                    }
-
                     return Option.Some<ICommand>(new WaitCommand(player));
                 #endregion
 
-                //case NormalInput.Get:
-                //    return _game.MapHandler.GetItem(player.Pos)
-                //        .FlatMap(item => Option.Some<ICommand>(new PickupCommand(player, item)));
-                case NormalInput.OpenMenu:
-                    Game.Exit();
-                    return Option.None<ICommand>();
+                #region Weapon Group Firing;
+                case NormalInput.WeaponGroup1:
+                    return player.WeaponGroup.FireGroup(0);
+                case NormalInput.WeaponGroup2:
+                    return player.WeaponGroup.FireGroup(1);
+                case NormalInput.WeaponGroup3:
+                    return player.WeaponGroup.FireGroup(2);
+                case NormalInput.WeaponGroup4:
+                    return player.WeaponGroup.FireGroup(3);
+                case NormalInput.WeaponGroup5:
+                    return player.WeaponGroup.FireGroup(4);
+                case NormalInput.WeaponGroup6:
+                    return player.WeaponGroup.FireGroup(5);
+                #endregion
             }
 
             return Option.None<ICommand>();
