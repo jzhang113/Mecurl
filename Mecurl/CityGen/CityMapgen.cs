@@ -192,7 +192,7 @@ namespace Mecurl.CityGen
 
             foreach (Loc loc in Map.GetStraightLinePath(startLoc, endLoc))
             {
-                foreach (Loc s in Map.GetPointsInRadius(loc, road.Width))
+                foreach (Loc s in Map.GetPointsInRadius(loc, road.Width, Measure.Manhatten))
                 {
                     Map.Field[s].IsWall = false;
                 }
@@ -290,7 +290,7 @@ namespace Mecurl.CityGen
                 return false;
 
 
-            foreach (Loc nearby in Map.GetPointsInRadius(new Loc((int)road.EndX, (int)road.EndY), 4))
+            foreach (Loc nearby in Map.GetPointsInRadius(new Loc((int)road.EndX, (int)road.EndY), 4, Measure.Chebyshev))
             {
                 if (!Map.Field[nearby].IsWall)
                 {

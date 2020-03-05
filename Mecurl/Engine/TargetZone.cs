@@ -38,20 +38,31 @@ namespace Engine
             Pierce = shape == TargetShape.Pierce;
         }
 
-        public IEnumerable<Loc> GetAllValidTargets(in Loc origin)
+        public IEnumerable<Loc> GetAllValidTargets(in Loc origin, Direction facing, Measure m, bool allowTargetWall)
         {
             var map = BaseGame.MapHandler;
             ICollection<Loc> valid = new HashSet<Loc>();
 
             // Filter the targettable range down to only the tiles we have a direct line on.
-            foreach (Loc point in map.GetPointsInRadius(origin, Range))
+            foreach (Loc point in map.GetPointsInRadius(origin, Range, m))
             {
+                var nearest = Distance.GetNearestDirection(point, origin);
+                if (nearest != facing && nearest != facing.Left() && nearest != facing.Right())
+                {
+                    continue;
+                }
+
                 Loc collision = origin;
                 foreach (Loc current in map.GetStraightLinePath(origin, point))
                 {
                     Map.Tile tile = map.Field[current];
                     if (tile.IsWall)
                     {
+                        if (allowTargetWall)
+                        {
+                            collision = current;
+                        }
+                        
                         break;
                     }
                     else
@@ -69,7 +80,7 @@ namespace Engine
             return valid;
         }
 
-        public IEnumerable<Loc> GetTilesInRange(in Loc source, in Loc target)
+        public IEnumerable<Loc> GetTilesInRange(in Loc source, in Loc target, Measure m)
         {
             var map = BaseGame.MapHandler;
             Targets.Clear();
@@ -77,7 +88,7 @@ namespace Engine
             switch (Shape)
             {
                 case TargetShape.Self:
-                    foreach (Loc point in map.GetPointsInRadius(source, Radius))
+                    foreach (Loc point in map.GetPointsInRadius(source, Radius, m))
                     {
                         if (Projectile && point == source)
                         {
@@ -91,7 +102,7 @@ namespace Engine
                     }
                     return Targets;
                 case TargetShape.Range:
-                    return GetRangeTiles(source, target);
+                    return GetRangeTiles(source, target, m);
                 case TargetShape.Ray:
                     return GetRayTiles(source, target);
                 case TargetShape.Pierce:
@@ -105,7 +116,7 @@ namespace Engine
             }
         }
 
-        private IEnumerable<Loc> GetRangeTiles(in Loc source, in Loc target)
+        private IEnumerable<Loc> GetRangeTiles(in Loc source, in Loc target, Measure m)
         {
             var map = BaseGame.MapHandler;
             Loc collision = target;
@@ -127,7 +138,7 @@ namespace Engine
                 }
             }
 
-            foreach (Loc point in map.GetPointsInRadius(collision, Radius))
+            foreach (Loc point in map.GetPointsInRadius(collision, Radius, m))
             {
                 // TODO: prevent large radius spells from hitting past walls.
                 Targets.Add(point);

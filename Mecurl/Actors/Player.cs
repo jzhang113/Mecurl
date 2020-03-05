@@ -23,7 +23,7 @@ namespace Mecurl.Actors
             Option<ICommand> fire()
             {
                 Console.WriteLine("firin' the nukes");
-                Game.StateHandler.PushState(new TargettingState(Game.MapHandler, this,
+                Game.StateHandler.PushState(new TargettingState(Game.MapHandler, this, Measure.Euclidean,
                     new TargetZone(TargetShape.Range, 20, 2), targets =>
                     {
                         Game.StateHandler.PopState();

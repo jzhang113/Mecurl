@@ -2,6 +2,11 @@
 
 namespace Engine
 {
+    public enum Measure
+    {
+        Chebyshev, Manhatten, Euclidean
+    }
+
     // Helper methods for calculating distances
     public static class Distance
     {
@@ -41,15 +46,16 @@ namespace Engine
                 _ => throw new ArgumentOutOfRangeException(),
             };
         }
-        public static double Euclidean(int x1, int y1, int x2, int y2)
+
+        public static double Euclidean(in Loc pos1, in Loc pos2)
         {
-            return Math.Sqrt(EuclideanSquared(x1, y1, x2, y2));
+            return Math.Sqrt(EuclideanSquared(pos1, pos2));
         }
 
-        public static int EuclideanSquared(int x1, int y1, int x2, int y2)
+        public static int EuclideanSquared(in Loc pos1, in Loc pos2)
         {
-            int dx = x1 - x2;
-            int dy = y1 - y2;
+            int dx = pos1.X - pos2.X;
+            int dy = pos1.Y - pos2.Y;
             return dx * dx + dy * dy;
         }
 

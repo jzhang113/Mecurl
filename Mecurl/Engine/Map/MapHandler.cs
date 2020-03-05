@@ -25,6 +25,8 @@ namespace Engine.Map
         // keep queue to prevent unnecessary allocations
         private readonly Queue<LocCost> _goals = new Queue<LocCost>();
 
+        private readonly Measure _measure;
+
         public MapHandler(int width, int height, int level)
         {
             Width = width;
@@ -37,6 +39,8 @@ namespace Engine.Map
             PlayerMap = new int[width, height];
             Units = new Dictionary<int, BaseActor>();
             Items = new Dictionary<int, BaseItem>();
+
+            _measure = EngineConsts.MEASURE;
         }
 
         // Recalculate the state of the world after movements happen. If only light recalculations
@@ -203,7 +207,7 @@ namespace Engine.Map
 
             while (nearest > 0)
             {
-                LocCost nextMove = MoveTowardsTarget(pos, PlayerMap);
+                LocCost nextMove = MoveTowardsTarget(pos, PlayerMap, _measure);
                 nearest = nextMove.Cost;
 
                 if (Math.Abs(nearest - prev) < 0.001f || Math.Abs(nearest) < 0.01f)
@@ -218,12 +222,12 @@ namespace Engine.Map
             }
         }
 
-        internal LocCost MoveTowardsTarget(in Loc current, int[,] goalMap, bool openDoors = false)
+        internal LocCost MoveTowardsTarget(in Loc current, int[,] goalMap, Measure m, bool openDoors = false)
         {
             Loc next = current;
             int nearest = goalMap[current.X, current.Y];
 
-            foreach (Loc newPos in GetPointsInRadius(current, 1))
+            foreach (Loc newPos in GetPointsInRadius(current, 1, m))
             {
                 if (goalMap[newPos.X, newPos.Y] != -1 && goalMap[newPos.X, newPos.Y] < nearest)
                 {
@@ -289,16 +293,39 @@ namespace Engine.Map
             }
         }
 
-        public IEnumerable<Loc> GetPointsInRadius(Loc origin, int radius)
+        public IEnumerable<Loc> GetPointsInRadius(Loc origin, int radius, Measure m)
         {
-            // square circles
-            for (int i = origin.X - radius; i <= origin.X + radius; i++)
-            {
-                for (int j = origin.Y - radius; j <= origin.Y + radius; j++)
-                {
-                    if (Field.IsValid(i, j))
-                        yield return new Loc(i, j);
-                }
+            switch (m) {
+                case Measure.Chebyshev:
+                    for (int i = origin.X - radius; i <= origin.X + radius; i++)
+                    {
+                        for (int j = origin.Y - radius; j <= origin.Y + radius; j++)
+                        {
+                            if (Field.IsValid(i, j))
+                                yield return new Loc(i, j);
+                        }
+                    }
+                    break;
+                case Measure.Manhatten:
+                    for (int i = origin.X - radius; i <= origin.X + radius; i++)
+                    {
+                        for (int j = origin.Y - radius; j <= origin.Y + radius; j++)
+                        {
+                            if (Field.IsValid(i, j) && Distance.Manhatten(new Loc(i, j), origin) <= radius)
+                                yield return new Loc(i, j);
+                        }
+                    }
+                    break;
+                case Measure.Euclidean:
+                    for (int i = origin.X - radius; i <= origin.X + radius; i++)
+                    {
+                        for (int j = origin.Y - radius; j <= origin.Y + radius; j++)
+                        {
+                            if (Field.IsValid(i, j) && Distance.EuclideanSquared(new Loc(i, j), origin) <= radius * radius)
+                                yield return new Loc(i, j);
+                        }
+                    }
+                    break;
             }
         }
 
@@ -650,7 +677,7 @@ namespace Engine.Map
             {
                 LocCost p = goals.Dequeue();
 
-                foreach (Loc next in GetPointsInRadius(p.Loc, 1))
+                foreach (Loc next in GetPointsInRadius(p.Loc, 1, _measure))
                 {
                     int newCost = p.Cost + 1;
                     Tile tile = Field[next];

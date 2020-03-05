@@ -26,10 +26,12 @@ namespace Mecurl.State
 
         private int _index;
         private Loc _cursor;
+        private readonly Measure _measure;
 
         public TargettingState(
             MapHandler map,
             BaseActor source,
+            Measure measure,
             TargetZone zone,
             Func<IEnumerable<Loc>, Option<ICommand>> callback)
         {
@@ -40,7 +42,10 @@ namespace Mecurl.State
             _targettableActors = new List<BaseActor>();
             _targetted = new List<Loc>();
             _path = new List<Loc>();
-            _inRange = zone.GetAllValidTargets(_source.Pos);
+
+            _measure = measure;
+            var actor = (Actor)_source;
+            _inRange = zone.GetAllValidTargets(actor.Pos, actor.Facing, _measure, true);
 
             // Pick out the interesting targets.
             // TODO: select items for item targetting spells
@@ -170,7 +175,7 @@ namespace Mecurl.State
 
         private IEnumerable<Loc> DrawTargettedTiles()
         {
-            IEnumerable<Loc> targets = _targetZone.GetTilesInRange(_source.Pos, _cursor);
+            IEnumerable<Loc> targets = _targetZone.GetTilesInRange(_source.Pos, _cursor, _measure);
             _targetted.Clear();
             _path.Clear();
 

@@ -22,5 +22,6 @@
         public const char HEADER_SEP = '│';   // 179
 
         public const int MESSAGE_HISTORY_COUNT = 100;
+        public const Measure MEASURE = Measure.Chebyshev;
     }
 }
