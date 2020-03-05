@@ -16,7 +16,7 @@ namespace Engine
         public static Random VisRand { get; }
 
         internal TimeSpan Ticks;
-        internal TimeSpan FrameRate = new TimeSpan(TimeSpan.TicksPerSecond / 30);
+        internal static TimeSpan FrameRate = new TimeSpan(TimeSpan.TicksPerSecond / 30);
 
         // HACK: how to communicate cancelled moved to the main loop?
         internal static bool PrevCancelled = false;

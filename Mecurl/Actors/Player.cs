@@ -3,6 +3,7 @@ using Engine;
 using Mecurl.Commands;
 using Mecurl.Parts;
 using Mecurl.State;
+using Mercurl.Animations;
 using Optional;
 using System;
 using System.Collections.Generic;
@@ -23,10 +24,12 @@ namespace Mecurl.Actors
             {
                 Console.WriteLine("firin' the nukes");
                 Game.StateHandler.PushState(new TargettingState(Game.MapHandler, this,
-                    new TargetZone(TargetShape.Range, 10, 1), targets =>
+                    new TargetZone(TargetShape.Range, 20, 2), targets =>
                     {
                         Game.StateHandler.PopState();
-                        return Option.Some<ICommand>(new AttackCommand(this, 400, 10, targets));
+
+                        var explosionAnim = Option.Some<IAnimation>(new ExplosionAnimation(targets, Colors.Fire));
+                        return Option.Some<ICommand>(new AttackCommand(this, 400, 10, targets, explosionAnim));
                     }));
 
                 return Option.None<ICommand>();

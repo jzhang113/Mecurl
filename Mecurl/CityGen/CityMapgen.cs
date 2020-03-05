@@ -1,7 +1,6 @@
 ﻿using Engine;
 using Engine.Map;
 using Priority_Queue;
-using SimplexNoise;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -16,8 +15,8 @@ namespace Mecurl.CityGen
 
         protected override void CreateMap()
         {
-            float[,] noiseMap = Noise.Calc2D(Width, Height, 0.1f);
-            CreateRoads(noiseMap);
+            //float[,] noiseMap = Noise.Calc2D(Width, Height, 0.1f);
+            CreateRoads();
 
             // gonna abuse this array so we don't have to reallocate it
             // here 0 represents not visited while 1 represents visited
@@ -236,7 +235,8 @@ namespace Mecurl.CityGen
         {
         }
 
-        private IEnumerable<Road> CreateRoads(float[,] populationMap)
+        // TODO: use a population map to guide randomness
+        private IEnumerable<Road> CreateRoads()
         {
             // Algorithm from http://nothings.org/gamedev/l_systems.html
             var potentialRoads = new SimplePriorityQueue<Road>();

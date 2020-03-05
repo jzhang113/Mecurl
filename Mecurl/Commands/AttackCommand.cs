@@ -15,9 +15,10 @@ namespace Mecurl.Commands
         private readonly ICollection<Loc> _targets;
         private readonly double _power;
 
-        public AttackCommand(ISchedulable source, int delay, double power, IEnumerable<Loc> targets)
+        public AttackCommand(ISchedulable source, int delay, double power, IEnumerable<Loc> targets, Option<IAnimation> animation)
         {
             Source = source;
+            Animation = animation;
             _targets = targets.ToList();
             _power = power;
         }
