@@ -20,13 +20,13 @@ namespace Mecurl.Parts
         public int Width { get; }
         public int Height { get; }
 
-        public Loc Facing { get; private set; }
+        public Direction Facing { get; private set; }
         public Loc Center { get; private set; }
         public Rectangle Bounds { get; private set; }
 
         public Func<Option<ICommand>> Activate { get; }
 
-        public Part(int width, int height, Loc center, Loc facing, RotateChar[] structure, Func<Option<ICommand>> activate)
+        public Part(int width, int height, Loc center, Direction facing, RotateChar[] structure, Func<Option<ICommand>> activate)
         {
             Id = GlobalId++;
             Structure = structure;

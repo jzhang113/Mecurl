@@ -17,9 +17,9 @@ namespace Mecurl.Actors
         public Player(in Loc pos) : base(pos, 100, '@', Color.Wheat)
         {
             Name = "Player";
-            Loc initialFacing = Direction.N;
+            Direction initialFacing = Direction.N;
 
-            Func<Option<ICommand>> fire = () =>
+            Option<ICommand> fire()
             {
                 Console.WriteLine("firin' the nukes");
                 Game.StateHandler.PushState(new TargettingState(Game.MapHandler, this,
@@ -30,7 +30,7 @@ namespace Mecurl.Actors
                     }));
 
                 return Option.None<ICommand>();
-            };
+            }
             Input.InputMapping.UpdateMapping(Terminal.TK_Z, fire);
 
             PartHandler = new PartHandler(initialFacing, new List<Part>()

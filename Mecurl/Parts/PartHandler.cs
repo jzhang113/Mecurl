@@ -12,16 +12,16 @@ namespace Mecurl.Parts
     {
         public ICollection<Part> PartList { get; }
         public Rectangle Bounds { get; private set; }
-        public Loc Facing { get; private set; }
+        public Direction Facing { get; private set; }
 
-        public PartHandler(Loc facing)
+        public PartHandler(Direction facing)
         {
             Facing = facing;
             PartList = new List<Part>();
             Bounds = new Rectangle(0, 0, 0, 0);
         }
 
-        public PartHandler(Loc facing, IEnumerable<Part> parts) : this(facing)
+        public PartHandler(Direction facing, IEnumerable<Part> parts) : this(facing)
         {
             foreach (Part p in parts)
             {

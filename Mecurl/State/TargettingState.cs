@@ -151,14 +151,14 @@ namespace Mecurl.State
                 : Option.None<ICommand>();
         }
 
-        private void MoveTarget(in Loc direction)
+        private void MoveTarget(Direction direction)
         {
             Loc next = _cursor + direction;
             if (_map.Field.IsValid(next) && _inRange.Contains(next))
                 _cursor = next;
         }
 
-        private void JumpTarget(in Loc direction)
+        private void JumpTarget(Direction direction)
         {
             Loc next = _cursor + direction;
             while (_map.Field.IsValid(next) && _inRange.Contains(next))

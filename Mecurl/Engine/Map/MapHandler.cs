@@ -358,56 +358,25 @@ namespace Engine.Map
 
         // Octants are identified by the direction of the right edge. Returns a row starting from
         // the straight edge.
-        private IEnumerable<Tile> GetRowInOctant(int x, int y, int distance, Loc dir)
+        private IEnumerable<Tile> GetRowInOctant(int x, int y, int distance, Direction dir)
         {
             if (dir == Direction.Center)
                 yield break;
 
             for (int i = 0; i <= distance; i++)
             {
-                int dx = 0;
-                int dy = 0;
-
-                if (dir == Direction.N)
+                (int dx, int dy) = dir switch
                 {
-                    dx = -i;
-                    dy = -distance;
-                }
-                else if (dir == Direction.NW)
-                {
-                    dx = -distance;
-                    dy = -i;
-                }
-                else if (dir == Direction.W)
-                {
-                    dx = -distance;
-                    dy = i;
-                }
-                else if (dir == Direction.SW)
-                {
-                    dx = -i;
-                    dy = distance;
-                }
-                else if (dir == Direction.S)
-                {
-                    dx = i;
-                    dy = distance;
-                }
-                else if (dir == Direction.SE)
-                {
-                    dx = distance;
-                    dy = i;
-                }
-                else if (dir == Direction.E)
-                {
-                    dx = distance;
-                    dy = -i;
-                }
-                else if (dir == Direction.NE)
-                {
-                    dx = i;
-                    dy = -distance;
-                }
+                    Direction.N => (-i, -distance),
+                    Direction.NW => (-distance, -i),
+                    Direction.W => (-distance, i),
+                    Direction.SW => (-i, distance),
+                    Direction.S => (i, distance),
+                    Direction.SE => (distance, i),
+                    Direction.E => (distance, -i),
+                    Direction.NE => (i, -distance),
+                    _ => (0, 0),
+                };
 
                 if (Field.IsValid(x + dx, y + dy))
                     yield return Field[x + dx, y + dy];
@@ -420,7 +389,7 @@ namespace Engine.Map
         #region FOV Methods
         public void ComputeFov(in Loc pos, double lightDecay, bool setVisible)
         {
-            foreach (Loc dir in Direction.DirectionList)
+            foreach (Direction dir in DirectionExtensions.DirectionList)
             {
                 var visibleRange = new Queue<AngleRange>();
                 visibleRange.Enqueue(new AngleRange(1, 0, 1, 1));

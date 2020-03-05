@@ -21,6 +21,18 @@
 
         public static Loc operator -(in Loc a, in Loc b) => new Loc(a.X - b.X, a.Y - b.Y);
 
+        public static Loc operator +(in Loc a, Direction dir)
+        {
+            var (dx, dy) = dir;
+            return new Loc(a.X + dx, a.Y + dy);
+        }
+
+        public static Loc operator -(in Loc a, Direction dir)
+        {
+            var (dx, dy) = dir;
+            return new Loc(a.X - dx, a.Y - dy);
+        }
+
         public void Deconstruct(out int x, out int y)
         {
             x = X;
