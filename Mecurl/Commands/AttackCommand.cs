@@ -3,6 +3,7 @@ using Mecurl.Actors;
 using Optional;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Linq;
 
 namespace Mecurl.Commands
 {
@@ -11,13 +12,13 @@ namespace Mecurl.Commands
         public ISchedulable Source { get; }
         public Option<IAnimation> Animation { get; private set; }
 
-        private readonly IEnumerable<Loc> _targets;
+        private readonly ICollection<Loc> _targets;
         private readonly double _power;
 
         public AttackCommand(ISchedulable source, int delay, double power, IEnumerable<Loc> targets)
         {
             Source = source;
-            _targets = targets;
+            _targets = targets.ToList();
             _power = power;
         }
 
@@ -44,7 +45,7 @@ namespace Mecurl.Commands
             // assign damage to any entity identified by the bounds check
             foreach (Actor actor in potentialIntersects)
             {
-                actor.PartHandler.AssignDamage(_targets, _power);
+                actor.AssignDamage(_targets, _power);
             }
 
             // assign damage to terrain

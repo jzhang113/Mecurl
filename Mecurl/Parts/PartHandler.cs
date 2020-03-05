@@ -75,14 +75,6 @@ namespace Mecurl.Parts
             Bounds = Rectangle.FromLTRB(Bounds.Top, -Bounds.Right + 1, Bounds.Bottom, -Bounds.Left + 1);
         }
 
-        internal void AssignDamage(IEnumerable<Loc> targets, double power)
-        {
-            foreach (Part p in PartList)
-            {
-                p.Health -= power;
-            }
-        }
-
         internal void Draw(LayerInfo layer, Loc pos)
         {
             Terminal.Layer(2);
