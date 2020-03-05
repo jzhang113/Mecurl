@@ -23,10 +23,11 @@ namespace Mecurl.Parts
 
         public Option<ICommand> FireGroup(int group)
         {
-            var weapon = NextIndex(group);
-            if (weapon >= 0)
+            var weaponIndex = NextIndex(group);
+            if (weaponIndex >= 0)
             {
-                Groups[group][weapon].Activate();
+                var weapon = Groups[group][weaponIndex];
+                weapon.Activate(weapon);
             }
 
             // HACK: Activate always returns None, so this is fine for now

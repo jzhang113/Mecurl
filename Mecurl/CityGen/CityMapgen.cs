@@ -217,13 +217,19 @@ namespace Mecurl.CityGen
                     // if we can't find a place to drop the player, just pick a random spot and
                     // destroy any offending building tiles
                     Loc pos = Map.GetRandomOpenPoint();
+
+                    // since GetRandomOpenPoint doesn't respect clearance, we clamp the coordinates
+                    // to avoid part of the mech being out of bounds
+                    int xPos = Math.Clamp(playerBounds.Width, pos.X, Width - playerBounds.Width);
+                    int yPos = Math.Clamp(playerBounds.Height, pos.Y, Height - playerBounds.Height);
+
                     Game.Player.Pos = pos;
 
                     for (int x = playerBounds.Left; x < playerBounds.Right; x++)
                     {
                         for (int y = playerBounds.Top; y < playerBounds.Bottom; y++)
                         {
-                            Map.Field[x + pos.X, y + pos.Y].IsWall = false;
+                            Map.Field[x + xPos, y + yPos].IsWall = false;
                         }
                     }
                 });

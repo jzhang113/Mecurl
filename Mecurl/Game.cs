@@ -68,6 +68,10 @@ namespace Mecurl
             Terminal.Set("0xE001: FontTiles/are.png, size = 12x12, transparent=black");
             Terminal.Set("0xE002: FontTiles/ars.png, size = 12x12, transparent=black");
             Terminal.Set("0xE003: FontTiles/arw.png, size = 12x12, transparent=black");
+            Terminal.Set("0xE010: FontTiles/trn.png, size = 12x12, transparent=black");
+            Terminal.Set("0xE011: FontTiles/tre.png, size = 12x12, transparent=black");
+            Terminal.Set("0xE012: FontTiles/trs.png, size = 12x12, transparent=black");
+            Terminal.Set("0xE013: FontTiles/trw.png, size = 12x12, transparent=black");
 
             Terminal.Refresh();
             Run();

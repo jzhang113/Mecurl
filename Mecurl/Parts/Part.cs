@@ -1,8 +1,6 @@
 ﻿using Engine;
 using Engine.Drawing;
-using Optional;
-using System;
-using System.Collections.Generic;
+using RexTools;
 using System.Drawing;
 
 namespace Mecurl.Parts
@@ -15,6 +13,7 @@ namespace Mecurl.Parts
         public string Name { get; set; }
         public double MaxHealth { get; set; }
         public double Health { get; set; }
+        public TileMap Art { get; set; }
 
         public RotateChar[] Structure { get; }
         public int Width { get; }

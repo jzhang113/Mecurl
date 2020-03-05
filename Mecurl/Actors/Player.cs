@@ -5,6 +5,7 @@ using Mecurl.Parts;
 using Mecurl.State;
 using Mercurl.Animations;
 using Optional;
+using RexTools;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -20,7 +21,7 @@ namespace Mecurl.Actors
             Name = "Player";
             Direction initialFacing = Direction.N;
 
-            Option<ICommand> fire()
+            Option<ICommand> fire(Weapon w)
             {
                 WeaponGroup wg = ((Actor)Game.Player).WeaponGroup;
 
@@ -29,7 +30,7 @@ namespace Mecurl.Actors
                     new TargetZone(TargetShape.Range, 20, 2), targets =>
                     {
                         Game.StateHandler.PopState();
-                        wg.Advance(1);
+                        wg.Advance(w.PrevGroup);
                         var explosionAnim = Option.Some<IAnimation>(new ExplosionAnimation(targets, Colors.Fire));
                         return Option.Some<ICommand>(new AttackCommand(this, 400, 10, targets, explosionAnim));
                     }));
@@ -39,6 +40,9 @@ namespace Mecurl.Actors
 
             WeaponGroup = new WeaponGroup();
 
+            var reader = new RexReader("AsciiArt/missileLauncher.xp");
+            var tilemap = reader.GetMap();
+
             PartHandler = new PartHandler(initialFacing, new List<Part>()
             {
                 new Part(3, 3, new Loc(0, 0), initialFacing,
@@ -47,12 +51,12 @@ namespace Mecurl.Actors
                     new RotateChar[2] { arn, arn}) { Name = "Leg" },
                 new Part(1, 2, new Loc(2, 0), initialFacing,
                     new RotateChar[2] { arn, arn}) { Name = "Leg" },
-                new Weapon(3, 3, new Loc(2, 2), initialFacing,
-                    new RotateChar[9] { sr, b4, b2, b4, b4, b2, b2, b2, sr },
-                    WeaponGroup, 1, fire) { Name = "Missiles (Right)" },
                 new Weapon(3, 3, new Loc(-2, 2), initialFacing,
                     new RotateChar[9] { b2, b4, sl, b2, b4, b4, sl, b2, b2 },
-                    WeaponGroup, 1, fire) { Name = "Missiles (Left)" },
+                    WeaponGroup, 0, fire) { Name = "Missiles (Left)", Art = tilemap  },
+                new Weapon(3, 3, new Loc(2, 2), initialFacing,
+                    new RotateChar[9] { sr, b4, b2, b4, b4, b2, b2, b2, sr },
+                    WeaponGroup, 0, fire) { Name = "Missiles (Right)", Art = tilemap },
             });
         }
 
