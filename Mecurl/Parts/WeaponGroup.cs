@@ -32,6 +32,9 @@ namespace Mecurl.Parts
             if (weaponIndex >= 0)
             {
                 var weapon = Groups[group][weaponIndex];
+
+                if (weapon.CurrentCooldown > 0) return Option.None<ICommand>();
+
                 weapon.Activate(weapon);
             }
 
@@ -55,8 +58,32 @@ namespace Mecurl.Parts
         // handling state stuff that needs to happen after the weapon has been fired
         internal void UpdateState(Weapon weapon)
         {
-            _nextWeapon[weapon.PrevGroup]++;
             _parent.CurrentHeat += weapon.HeatGenerated;
+            weapon.CurrentCooldown = weapon.Cooldown;
+
+            List<Weapon> group = Groups[weapon.PrevGroup];
+            int minCooldown = weapon.CurrentCooldown;
+            int currIndex = _nextWeapon[weapon.PrevGroup];
+            int index = currIndex;
+
+            for (int i = 0; i < group.Count; i++)
+            {
+                Weapon w = group[i];
+
+                if ((w.CurrentCooldown < minCooldown) ||
+                    (w.CurrentCooldown == minCooldown && IndexDist(i, currIndex, group.Count) < IndexDist(index, currIndex, group.Count)))
+                {
+                    minCooldown = w.CurrentCooldown;
+                    index = i;
+                }
+            }
+
+            _nextWeapon[weapon.PrevGroup] = index;
+        }
+
+        private int IndexDist(int i, int j, int groupLength)
+        {
+            return (i - j + groupLength) % groupLength;
         }
 
         public int NextIndex(int group)

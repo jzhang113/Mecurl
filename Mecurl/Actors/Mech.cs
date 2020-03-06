@@ -39,6 +39,7 @@ namespace Mecurl.Actors
 
         public override Option<ICommand> GetAction()
         {
+            ProcessTick();
             return Option.Some<ICommand>(new WaitCommand(this));
         }
 
@@ -83,6 +84,21 @@ namespace Mecurl.Actors
                     }
                 }
             }
+        }
+
+        internal void ProcessTick()
+        {
+            foreach (Part p in PartHandler)
+            {
+                CurrentHeat -= p.HeatRemoved;
+
+                if (p.CurrentCooldown > 0)
+                {
+                    p.CurrentCooldown--;
+                }
+            }
+
+            CurrentHeat = Math.Max(CurrentHeat, 0);
         }
 
         public override void Draw(LayerInfo layer)

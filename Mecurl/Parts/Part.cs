@@ -19,6 +19,9 @@ namespace Mecurl.Parts
         public double HeatCapacity { get; set; }
         public double HeatRemoved { get; set; }
 
+        public int Cooldown { get; set; }
+        internal int CurrentCooldown { get; set; }
+
         public RotateChar[] Structure { get; }
         public int Width { get; }
         public int Height { get; }

@@ -38,6 +38,14 @@ namespace Engine.Drawing
             Terminal.Print(layout, alignment, $"[font=text]{text}");
         }
 
+        public void Print(int x, int y, string text, ContentAlignment alignment = ContentAlignment.TopLeft)
+        {
+            if (y < Height)
+                Terminal.Print(new Rectangle(X + x, Y + y, Width, 1), alignment, $"[font=text]{text}");
+            else
+                System.Diagnostics.Debug.WriteLine($"Warning: line {y} out of bounds on layer {Name}");
+        }
+
         public void Print(int y, string text, ContentAlignment alignment = ContentAlignment.TopLeft)
         {
             if (y < Height)

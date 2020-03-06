@@ -12,9 +12,6 @@ namespace Mecurl.UI
 {
     internal static class InfoPanel
     {
-        static double n = 0;
-        static double m = 1.3;
-
         public static void Draw(LayerInfo layer)
         {
             // draw borders
@@ -46,12 +43,22 @@ namespace Mecurl.UI
                 if (p is Weapon) continue;
 
                 layer.Print(y++, p.Name);
-                int barLength = (int)(p.MaxHealth / 10);
-                int remainLength = Math.Max((int)(p.Health / 10), 0);
-                string healthString =
-                    "[color=red]" + new String('|', remainLength) + "[/color]" +
-                    "[color=gray]" + new string('|', barLength - remainLength) + "[/color]";
-                layer.Print(y++, $"[[{healthString}]]");
+
+                if (p.Art != null)
+                {
+                    DrawTileMap(layer, 1, y, p.Art);
+                    y += p.Art.Height + 1;
+                }
+                else
+                {
+                    int barLength = (int)(p.MaxHealth / 10);
+                    int remainLength = Math.Max((int)(p.Health / 10), 0);
+                    string healthString =
+                        "[color=red]" + new String('|', remainLength) + "[/color]" +
+                        "[color=gray]" + new string('|', barLength - remainLength) + "[/color]";
+                    layer.Print(y++, $"[[{healthString}]]");
+                }
+
                 y++;
             }
 
@@ -70,23 +77,36 @@ namespace Mecurl.UI
                     Weapon w = group[j];
                     if (currWeaponIndex == j)
                     {
-                        layer.Put(-1, y, 0xE011);
+                        Terminal.Color(Color.FromArgb(48, 238, 48));
+                        layer.Put(0, y, 0xE011);
                     }
 
-                    layer.Print(y++, w.Name);
-                    int barLength = (int)(w.MaxHealth / 10);
-                    int remainLength = Math.Max((int)(w.Health / 10), 0);
-                    string healthString =
-                        "[color=red]" + new String('|', remainLength) + "[/color]" +
-                        "[color=gray]" + new string('|', barLength - remainLength) + "[/color]";
-                    layer.Print(y++, $"[[{healthString}]]");
+                    double cooldown = layer.Width - layer.Width * w.CurrentCooldown / w.Cooldown;
+
+                    Terminal.Layer(1);
+                    Terminal.Color(Color.LightGreen.Blend(Color.LightSalmon, 1 - cooldown / layer.Width));
+                    DrawBar(layer, 1, y, cooldown, 0, '░');
+                    Terminal.Layer(2);
+
+                    if (w.CurrentCooldown == 0) Terminal.Color(Color.FromArgb(48, 238, 48));
+                    layer.Print(1, y++, w.Name);
+                    Terminal.Layer(1);
+
                     y++;
 
                     if (w.Art != null)
                     {
-                        DrawTileMap(layer, 1, y, w.Art);
-
+                        DrawTileMap(layer, 2, y, w.Art);
                         y += w.Art.Height + 1;
+                    }
+                    else
+                    {
+                        int barLength = (int)(w.MaxHealth / 10);
+                        int remainLength = Math.Max((int)(w.Health / 10), 0);
+                        string healthString =
+                            "[color=red]" + new String('|', remainLength) + "[/color]" +
+                            "[color=gray]" + new string('|', barLength - remainLength) + "[/color]";
+                        layer.Print(y++, $"[[{healthString}]]");
                     }
 
                     Terminal.Color(Colors.Text);
@@ -108,7 +128,8 @@ namespace Mecurl.UI
         }
 
         // HACK: this would be way easier with a real rectangle drawing API
-        // unitSize 2 looks good, unitSize 4 is alright, everything else is kinda bad
+        // unitSize 4 breaks it, dunno why
+        // everything from 1 - 7 works though
         private static void DrawHeatBar(LayerInfo layer, int x, int y, Mech player)
         {
             // how much should 1 block of heat represent
@@ -149,8 +170,7 @@ namespace Mecurl.UI
 
                 int startPos = (int)segmentMin;
                 double startFrac = segmentMin - startPos;
-                char tile = (i < 2) ? '█' : '█';
-                char prevTile = (i - 1 < 2) ? '█' : '█';
+                char tile = '█';
 
                 Terminal.Color(regionColor[i + 1]);
                 DrawBar(layer, x + 1 + startPos, y, segmentLength, startFrac, tile);
@@ -159,17 +179,16 @@ namespace Mecurl.UI
                 {
                     if (startFrac > 0)
                     {
-                        var intpart = (int)(segmentLength + startFrac);
                         Terminal.Color(regionColor[i]);
-                        Terminal.Layer(2);
-                        Terminal.PutExt(layer.X + startPos + intpart, layer.Y + y, (int)((startFrac - 1) * Terminal.State(Terminal.TK_CELL_WIDTH)), 0, prevTile);
+                        Terminal.Layer(3);
+                        Terminal.PutExt(layer.X + startPos + 1, layer.Y + y, (int)((startFrac - 1) * Terminal.State(Terminal.TK_CELL_WIDTH)), 0, tile);
                         Terminal.Layer(1);
                     }
                     else
                     {
                         Terminal.Color(regionColor[i]);
                         Terminal.Layer(3);
-                        Terminal.Put(layer.X + startPos, layer.Y + y, prevTile);
+                        Terminal.Put(layer.X + startPos, layer.Y + y, tile);
                         Terminal.Layer(1);
                     }
                 }
