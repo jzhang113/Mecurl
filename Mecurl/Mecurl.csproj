@@ -20,6 +20,9 @@
     <None Update="AsciiArt\missileLauncher.xp">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="AsciiArt\placeholder.xp">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="FontTiles\are.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

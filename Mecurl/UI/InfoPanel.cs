@@ -12,6 +12,16 @@ namespace Mecurl.UI
 {
     internal static class InfoPanel
     {
+        private static readonly Color brightGreen = Color.FromArgb(48, 238, 48);
+        private static readonly Color golden = Color.FromArgb(217, 163, 0);
+        private static TileMap placeholder;
+
+        static InfoPanel()
+        {
+            var reader = new RexReader("AsciiArt/placeholder.xp");
+            placeholder = reader.GetMap();
+        }
+
         public static void Draw(LayerInfo layer)
         {
             // draw borders
@@ -25,15 +35,34 @@ namespace Mecurl.UI
                 LeftChar = '│' // 179
             });
 
-            var player = (Actors.Mech)Game.Player;
+            var player = (Mech)Game.Player;
             int y = 1;
 
             Terminal.Color(Colors.Text);
-            layer.Print(y++, "Axel the Pilot");
-            layer.Print(y++, "[[[color=blue]||||||||||||||[/color]]]");
-            layer.Print(y++, "[[[color=purple]||||||||||||||[/color]]]");
+            layer.Print(y, "snake153 the Pilot");
+            y += 2;
 
-            DrawHeatBar(layer, 0, y, player);
+            Terminal.Color(golden);
+            Terminal.Layer(1);
+            DrawBar(layer, 0, y, layer.Width, 0, '░');
+
+            Terminal.Layer(2);
+            layer.Print(y, "Energy");
+            y++;
+
+            Terminal.Color(Color.LightSkyBlue);
+            Terminal.Layer(1);
+            DrawBar(layer, 0, y, layer.Width, 0, '░');
+
+            Terminal.Layer(2);
+            layer.Print(y, "Coolant");
+            y++;
+
+            Terminal.Color(Color.DarkOrange);
+            Terminal.Layer(4);
+            layer.Print(y, "Heat");
+
+            DrawHeatBar(layer, 4, y, player);
             y += 2;
 
             Terminal.Color(Colors.Text);
@@ -42,23 +71,15 @@ namespace Mecurl.UI
                 // Ignore weapons for now - we draw them with their weapon groups
                 if (p is Weapon) continue;
 
-                layer.Print(y++, p.Name);
+                Terminal.Color(Colors.Text);
+                Terminal.Layer(1);
+                DrawBar(layer, 1, y, layer.Width, 0, '░');
 
-                if (p.Art != null)
-                {
-                    DrawTileMap(layer, 1, y, p.Art);
-                    y += p.Art.Height + 1;
-                }
-                else
-                {
-                    int barLength = (int)(p.MaxHealth / 10);
-                    int remainLength = Math.Max((int)(p.Health / 10), 0);
-                    string healthString =
-                        "[color=red]" + new String('|', remainLength) + "[/color]" +
-                        "[color=gray]" + new string('|', barLength - remainLength) + "[/color]";
-                    layer.Print(y++, $"[[{healthString}]]");
-                }
+                Terminal.Layer(2);
+                layer.Print(1, y++, p.Name);
 
+                y++;
+                y = DrawPart(layer, y, p);
                 y++;
             }
 
@@ -68,50 +89,76 @@ namespace Mecurl.UI
                 List<Weapon> group = player.WeaponGroup.Groups[i];
                 if (group.Count == 0) continue;
 
+                Terminal.Color(golden);
                 layer.Print(y++, $"Weapon Group {i + 1}");
                 layer.Print(y++, $"────────────────────");
                 var currWeaponIndex = player.WeaponGroup.NextIndex(i);
 
                 for (int j = 0; j < group.Count; j++)
                 {
+                    // TODO: it's possible to run out of space, in which case we would need scrolling
+                    // we just truncate and not worry about it for now
+                    if (y + 6 > layer.Height) break;
+
                     Weapon w = group[j];
+                    double cooldown = layer.Width - layer.Width * w.CurrentCooldown / w.Cooldown;
+
+                    if (w.CurrentCooldown == 0)
+                    {
+                        Terminal.Color(brightGreen);
+                    }
+                    else
+                    {
+                        Terminal.Color(Color.LightGreen.Blend(Color.LightSalmon, 1 - cooldown / layer.Width));
+                    }
+
                     if (currWeaponIndex == j)
                     {
-                        Terminal.Color(Color.FromArgb(48, 238, 48));
                         layer.Put(0, y, 0xE011);
                     }
 
-                    double cooldown = layer.Width - layer.Width * w.CurrentCooldown / w.Cooldown;
-
                     Terminal.Layer(1);
-                    Terminal.Color(Color.LightGreen.Blend(Color.LightSalmon, 1 - cooldown / layer.Width));
                     DrawBar(layer, 1, y, cooldown, 0, '░');
-                    Terminal.Layer(2);
 
-                    if (w.CurrentCooldown == 0) Terminal.Color(Color.FromArgb(48, 238, 48));
+                    Terminal.Layer(2);
                     layer.Print(1, y++, w.Name);
                     Terminal.Layer(1);
 
                     y++;
-
-                    if (w.Art != null)
-                    {
-                        DrawTileMap(layer, 2, y, w.Art);
-                        y += w.Art.Height + 1;
-                    }
-                    else
-                    {
-                        int barLength = (int)(w.MaxHealth / 10);
-                        int remainLength = Math.Max((int)(w.Health / 10), 0);
-                        string healthString =
-                            "[color=red]" + new String('|', remainLength) + "[/color]" +
-                            "[color=gray]" + new string('|', barLength - remainLength) + "[/color]";
-                        layer.Print(y++, $"[[{healthString}]]");
-                    }
-
-                    Terminal.Color(Colors.Text);
+                    y = DrawPart(layer, y, w);
+                    y++;
                 }
             }
+        }
+
+        private static int DrawPart(LayerInfo layer, int y, Part p)
+        {
+            //Terminal.Color(Color.White);
+            layer.Print(1, y, $"Stab:{p.Health / p.MaxHealth * 100}%");
+
+            if (p.Cooldown > 0)
+            {
+                layer.Print(1, y + 1, $"Rchg:{p.CurrentCooldown}");
+            }
+            else
+            {
+                layer.Print(1, y + 1, $"Rchg:-");
+            }
+
+            if (p is Weapon)
+            {
+                layer.Print(1, y + 2, $"Ammo:{1000}");
+            }
+            else
+            {
+                layer.Print(1, y + 2, $"Ammo:-");
+            }
+
+            TileMap img = p.Art ?? placeholder;
+            DrawTileMap(layer, layer.Width - img.Width, y, img);
+            y += img.Height;
+
+            return y;
         }
 
         private static void DrawTileMap(LayerInfo layer, int x, int y, TileMap tileMap)
@@ -121,33 +168,34 @@ namespace Mecurl.UI
                 for (int ay = 0; ay < tileMap.Height; ay++)
                 {
                     var tile = tileMap.Layers[0].Tiles[ay, ax];
-                    Terminal.Color(Color.FromArgb(tile.ForegroundRed, tile.ForegroundGreen, tile.ForegroundBlue));
+                    Color color = Color.FromArgb(tile.ForegroundRed, tile.ForegroundGreen, tile.ForegroundBlue);
+
+                    Terminal.Layer(1);
+                    Terminal.Color(color);
                     layer.Put(x + ax, ay + y, CharTranslation.ToUnicode(tile.CharacterCode));
                 }
             }
         }
 
         // HACK: this would be way easier with a real rectangle drawing API
-        // unitSize 4 breaks it, dunno why
-        // everything from 1 - 7 works though
+        // still breaks on some parameters, but I don't know which
         private static void DrawHeatBar(LayerInfo layer, int x, int y, Mech player)
         {
-            // how much should 1 block of heat represent
-            const double unitSize = 2;            
-
-            double barLength = player.PartHandler.TotalHeatCapacity / unitSize;
+            double barLength = layer.Width - x;
             double quarterBar = barLength / 4;
 
-            double currentLength = player.CurrentHeat / unitSize;
+            double currentLength = player.CurrentHeat / player.PartHandler.TotalHeatCapacity * quarterBar * 3;
 
-            int xPos = x;
-            var regionColor = new Color[] { Color.Black, Color.Green, Color.Yellow, Color.Orange, Color.Red };
+            var lowColor = Color.FromArgb(219, 226, 175);
+            var medColor = Color.FromArgb(237, 217, 110);
+            var highColor = Color.FromArgb(207, 112, 71);
+            var dangerColor = Color.FromArgb(122, 0, 45);
+            var regionColor = new Color[] { Colors.Background, lowColor, medColor, highColor, dangerColor };
 
-            Terminal.Color(Color.White);
-            Terminal.Layer(4);
-            layer.Put(xPos++, y, '[');
-            Terminal.PutExt(layer.X + xPos + (int)barLength, layer.Y + y, (int)((barLength - (int)barLength) * 12), 0, ']');
-            Terminal.Layer(1);
+            // fix the border
+            //Terminal.Color(Colors.BorderColor);
+            //Terminal.Layer(4);
+            //layer.Put(-1, y, '│');
 
             // draw 25% of the bar each iteration
             for (int i = 0; i < 4; i++)
@@ -173,7 +221,7 @@ namespace Mecurl.UI
                 char tile = '█';
 
                 Terminal.Color(regionColor[i + 1]);
-                DrawBar(layer, x + 1 + startPos, y, segmentLength, startFrac, tile);
+                DrawBar(layer, x + startPos, y, segmentLength, startFrac, tile);
 
                 if ((int)segmentLength == 0)
                 {
@@ -181,14 +229,14 @@ namespace Mecurl.UI
                     {
                         Terminal.Color(regionColor[i]);
                         Terminal.Layer(3);
-                        Terminal.PutExt(layer.X + startPos + 1, layer.Y + y, (int)((startFrac - 1) * Terminal.State(Terminal.TK_CELL_WIDTH)), 0, tile);
+                        Terminal.PutExt(layer.X + x + startPos, layer.Y + y, (int)((startFrac - 1) * Terminal.State(Terminal.TK_CELL_WIDTH)), 0, tile);
                         Terminal.Layer(1);
                     }
                     else
                     {
                         Terminal.Color(regionColor[i]);
                         Terminal.Layer(3);
-                        Terminal.Put(layer.X + startPos, layer.Y + y, tile);
+                        Terminal.Put(layer.X + x + startPos - 1, layer.Y + y, tile);
                         Terminal.Layer(1);
                     }
                 }
