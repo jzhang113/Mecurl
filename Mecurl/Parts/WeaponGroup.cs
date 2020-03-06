@@ -1,4 +1,5 @@
 ﻿using Engine;
+using Mecurl.Actors;
 using Optional;
 using System.Collections.Generic;
 
@@ -7,13 +8,17 @@ namespace Mecurl.Parts
     public class WeaponGroup
     {
         internal List<Weapon>[] Groups { get; }
-        private int[] NextWeapon { get; }
 
-        public WeaponGroup()
+        private Mech _parent;
+        private int[] _nextWeapon;
+
+        public WeaponGroup(Mech parent)
         {
+            _parent = parent;
+
             const int weaponGroupCount = 6;
             Groups = new List<Weapon>[weaponGroupCount];
-            NextWeapon = new int[weaponGroupCount];
+            _nextWeapon = new int[weaponGroupCount];
 
             for (int i = 0; i < weaponGroupCount; i++)
             {
@@ -47,12 +52,17 @@ namespace Mecurl.Parts
             w.PrevGroup = newGroup;
         }
 
-        public void Advance(int group) => NextWeapon[group]++;
+        // handling state stuff that needs to happen after the weapon has been fired
+        internal void UpdateState(Weapon weapon)
+        {
+            _nextWeapon[weapon.PrevGroup]++;
+            _parent.CurrentHeat += weapon.HeatGenerated;
+        }
 
         public int NextIndex(int group)
         {
             int count = Groups[group].Count;
-            return count == 0 ? -1 : NextWeapon[group] % count;
+            return count == 0 ? -1 : _nextWeapon[group] % count;
         }
     }
 }

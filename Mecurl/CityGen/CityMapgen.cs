@@ -202,7 +202,7 @@ namespace Mecurl.CityGen
         protected override void PlaceActors()
         {
             // find a sufficiently large place to place the mech
-            Rectangle playerBounds = ((Actors.Actor)Game.Player).PartHandler.Bounds;
+            Rectangle playerBounds = ((Actors.Mech)Game.Player).PartHandler.Bounds;
             int minClearance = Math.Max(playerBounds.Width, playerBounds.Height);
 
             Map.GetRandomOpenPoint(minClearance, 50).Match(

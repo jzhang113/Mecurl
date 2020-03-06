@@ -10,15 +10,18 @@ using System.Drawing;
 
 namespace Mecurl.Actors
 {
-    public class Actor : BaseActor
+    public class Mech : BaseActor
     {
         public PartHandler PartHandler { get; protected set; }
         public WeaponGroup WeaponGroup { get; protected set; }
+        public double CurrentHeat { get; internal set; }
 
         public Direction Facing => PartHandler.Facing;
 
-        public Actor(in Loc pos, int hp, char symbol, Color color) : base(pos, hp, symbol, color)
+        public Mech(in Loc pos, int hp, char symbol, Color color) : base(pos, hp, symbol, color)
         {
+            WeaponGroup = new WeaponGroup(this);
+            CurrentHeat = 0;
         }
 
         public override Option<ICommand> TriggerDeath()

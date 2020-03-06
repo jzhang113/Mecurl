@@ -13,12 +13,15 @@ namespace Mecurl.Parts
         public ICollection<Part> PartList { get; }
         public Rectangle Bounds { get; private set; }
         public Direction Facing { get; private set; }
+        public double TotalHeatCapacity { get; private set; }
 
         public PartHandler(Direction facing)
         {
             Facing = facing;
             PartList = new List<Part>();
             Bounds = new Rectangle(0, 0, 0, 0);
+
+            TotalHeatCapacity = 0;
         }
 
         public PartHandler(Direction facing, IEnumerable<Part> parts) : this(facing)
@@ -48,6 +51,9 @@ namespace Mecurl.Parts
             int newBot = Math.Max(p.Bounds.Bottom, Bounds.Bottom);
 
             Bounds = Rectangle.FromLTRB(newLeft, newTop, newRight, newBot);
+
+            // add heat capacity to total
+            TotalHeatCapacity += p.HeatCapacity;
             return true;
         }
 

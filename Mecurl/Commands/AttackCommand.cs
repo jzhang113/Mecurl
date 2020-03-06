@@ -25,12 +25,12 @@ namespace Mecurl.Commands
 
         public Option<ICommand> Execute()
         {
-            var potentialIntersects = new List<Actor>();
+            var potentialIntersects = new List<Mech>();
 
             // quick bounds check for each entity
             foreach (BaseActor unit in Game.MapHandler.Units.Values)
             {
-                var actor = (Actor)unit;
+                var actor = (Mech)unit;
                 var bound = new Rectangle(actor.PartHandler.Bounds.Left + actor.Pos.X, actor.PartHandler.Bounds.Top + actor.Pos.Y, actor.PartHandler.Bounds.Width, actor.PartHandler.Bounds.Height);
 
                 foreach (Loc loc in _targets)
@@ -44,7 +44,7 @@ namespace Mecurl.Commands
             }
 
             // assign damage to any entity identified by the bounds check
-            foreach (Actor actor in potentialIntersects)
+            foreach (Mech actor in potentialIntersects)
             {
                 actor.AssignDamage(_targets, _power);
             }

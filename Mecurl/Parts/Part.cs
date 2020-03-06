@@ -15,6 +15,10 @@ namespace Mecurl.Parts
         public double Health { get; set; }
         public TileMap Art { get; set; }
 
+        public double HeatGenerated { get; set; }
+        public double HeatCapacity { get; set; }
+        public double HeatRemoved { get; set; }
+
         public RotateChar[] Structure { get; }
         public int Width { get; }
         public int Height { get; }

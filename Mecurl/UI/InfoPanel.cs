@@ -1,6 +1,7 @@
 ﻿using BearLib;
 using Engine;
 using Engine.Drawing;
+using Mecurl.Actors;
 using Mecurl.Parts;
 using RexTools;
 using System;
@@ -11,6 +12,9 @@ namespace Mecurl.UI
 {
     internal static class InfoPanel
     {
+        static double n = 0;
+        static double m = 1.3;
+
         public static void Draw(LayerInfo layer)
         {
             // draw borders
@@ -24,17 +28,18 @@ namespace Mecurl.UI
                 LeftChar = '│' // 179
             });
 
-            var player = (Actors.Actor)Game.Player;
+            var player = (Actors.Mech)Game.Player;
             int y = 1;
 
             Terminal.Color(Colors.Text);
             layer.Print(y++, "Axel the Pilot");
             layer.Print(y++, "[[[color=blue]||||||||||||||[/color]]]");
             layer.Print(y++, "[[[color=purple]||||||||||||||[/color]]]");
-            layer.Print(y++, "[[[color=orange]|             [/color]]]");
 
-            y++;
+            DrawHeatBar(layer, 0, y, player);
+            y += 2;
 
+            Terminal.Color(Colors.Text);
             foreach (Part p in player.PartHandler)
             {
                 // Ignore weapons for now - we draw them with their weapon groups
@@ -99,6 +104,97 @@ namespace Mecurl.UI
                     Terminal.Color(Color.FromArgb(tile.ForegroundRed, tile.ForegroundGreen, tile.ForegroundBlue));
                     layer.Put(x + ax, ay + y, CharTranslation.ToUnicode(tile.CharacterCode));
                 }
+            }
+        }
+
+        // HACK: this would be way easier with a real rectangle drawing API
+        // unitSize 2 looks good, unitSize 4 is alright, everything else is kinda bad
+        private static void DrawHeatBar(LayerInfo layer, int x, int y, Mech player)
+        {
+            // how much should 1 block of heat represent
+            const double unitSize = 2;            
+
+            double barLength = player.PartHandler.TotalHeatCapacity / unitSize;
+            double quarterBar = barLength / 4;
+
+            double currentLength = player.CurrentHeat / unitSize;
+
+            int xPos = x;
+            var regionColor = new Color[] { Color.Black, Color.Green, Color.Yellow, Color.Orange, Color.Red };
+
+            Terminal.Color(Color.White);
+            Terminal.Layer(4);
+            layer.Put(xPos++, y, '[');
+            Terminal.PutExt(layer.X + xPos + (int)barLength, layer.Y + y, (int)((barLength - (int)barLength) * 12), 0, ']');
+            Terminal.Layer(1);
+
+            // draw 25% of the bar each iteration
+            for (int i = 0; i < 4; i++)
+            {
+                // skip if we haven't reached this segment
+                double segmentMin = quarterBar * i;
+                if (segmentMin > currentLength) continue;
+
+                // on the other hand, if we are past this segment, only consider this quarter
+                double segmentMax = quarterBar * (i + 1);
+                double segmentLength;
+                if (currentLength < segmentMax)
+                {
+                    segmentLength = currentLength - segmentMin;
+                }
+                else
+                {
+                    segmentLength = quarterBar;
+                }
+
+                int startPos = (int)segmentMin;
+                double startFrac = segmentMin - startPos;
+                char tile = (i < 2) ? '█' : '█';
+                char prevTile = (i - 1 < 2) ? '█' : '█';
+
+                Terminal.Color(regionColor[i + 1]);
+                DrawBar(layer, x + 1 + startPos, y, segmentLength, startFrac, tile);
+
+                if ((int)segmentLength == 0)
+                {
+                    if (startFrac > 0)
+                    {
+                        var intpart = (int)(segmentLength + startFrac);
+                        Terminal.Color(regionColor[i]);
+                        Terminal.Layer(2);
+                        Terminal.PutExt(layer.X + startPos + intpart, layer.Y + y, (int)((startFrac - 1) * Terminal.State(Terminal.TK_CELL_WIDTH)), 0, prevTile);
+                        Terminal.Layer(1);
+                    }
+                    else
+                    {
+                        Terminal.Color(regionColor[i]);
+                        Terminal.Layer(3);
+                        Terminal.Put(layer.X + startPos, layer.Y + y, prevTile);
+                        Terminal.Layer(1);
+                    }
+                }
+            }
+        }
+
+        private static void DrawBar(LayerInfo layer, int x, int y, double length, double dx, char c)
+        {
+            // number of tiles of the segment
+            int regionTiles = (int)length;
+            double remaining = length - regionTiles;
+
+            int cellWidth = Terminal.State(Terminal.TK_CELL_WIDTH);
+            int offset = (int)(cellWidth * dx);
+
+            for (int j = 0; j < regionTiles; j++)
+            {
+                Terminal.PutExt(layer.X + x + j, layer.Y + y, offset, 0, c);
+            }
+
+            if (remaining > 0)
+            {
+                Terminal.Layer(2);
+                Terminal.PutExt(layer.X + x + regionTiles - 1, layer.Y + y, offset + (int)(remaining * cellWidth), 0, c);
+                Terminal.Layer(1);
             }
         }
     }

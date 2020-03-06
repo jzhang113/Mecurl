@@ -7,12 +7,12 @@ namespace Mecurl.Commands
 {
     internal class MoveCommand : ICommand
     {
-        public Actor Source { get; }
+        public Mech Source { get; }
         public Option<IAnimation> Animation { get; private set; }
 
         private readonly Loc _nextPos;
 
-        public MoveCommand(Actor source, in Loc pos)
+        public MoveCommand(Mech source, in Loc pos)
         {
             Source = source;
             _nextPos = pos;

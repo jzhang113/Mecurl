@@ -14,7 +14,7 @@ using static Mecurl.Parts.RotateCharLiterals;
 
 namespace Mecurl.Actors
 {
-    public class Player : Actor
+    public class Player : Mech
     {
         public Player(in Loc pos) : base(pos, 100, '@', Color.Wheat)
         {
@@ -23,14 +23,14 @@ namespace Mecurl.Actors
 
             Option<ICommand> fire(Weapon w)
             {
-                WeaponGroup wg = ((Actor)Game.Player).WeaponGroup;
+                WeaponGroup wg = ((Mech)Game.Player).WeaponGroup;
 
                 Console.WriteLine("firin' the nukes");
                 Game.StateHandler.PushState(new TargettingState(Game.MapHandler, this, Measure.Euclidean,
                     new TargetZone(TargetShape.Range, 20, 2), targets =>
                     {
                         Game.StateHandler.PopState();
-                        wg.Advance(w.PrevGroup);
+                        wg.UpdateState(w);
                         var explosionAnim = Option.Some<IAnimation>(new ExplosionAnimation(targets, Colors.Fire));
                         return Option.Some<ICommand>(new AttackCommand(this, 400, 10, targets, explosionAnim));
                     }));
@@ -38,25 +38,23 @@ namespace Mecurl.Actors
                 return Option.None<ICommand>();
             }
 
-            WeaponGroup = new WeaponGroup();
-
             var reader = new RexReader("AsciiArt/missileLauncher.xp");
             var tilemap = reader.GetMap();
 
             PartHandler = new PartHandler(initialFacing, new List<Part>()
             {
                 new Part(3, 3, new Loc(0, 0), initialFacing,
-                    new RotateChar[9] { sr, b1, sl , b4, at, b3, sl, b2, sr }) { Name = "Core" },
+                    new RotateChar[9] { sr, b1, sl , b4, at, b3, sl, b2, sr }) { Name = "Core", HeatCapacity = 30, HeatRemoved = 1 },
                 new Part(1, 2, new Loc(-2, 0), initialFacing,
                     new RotateChar[2] { arn, arn}) { Name = "Leg" },
                 new Part(1, 2, new Loc(2, 0), initialFacing,
                     new RotateChar[2] { arn, arn}) { Name = "Leg" },
                 new Weapon(3, 3, new Loc(-2, 2), initialFacing,
                     new RotateChar[9] { b2, b4, sl, b2, b4, b4, sl, b2, b2 },
-                    WeaponGroup, 0, fire) { Name = "Missiles (Left)", Art = tilemap  },
+                    WeaponGroup, 0, fire) { Name = "Missiles (Left)", Art = tilemap, HeatGenerated = 1 },
                 new Weapon(3, 3, new Loc(2, 2), initialFacing,
                     new RotateChar[9] { sr, b4, b2, b4, b4, b2, b2, b2, sr },
-                    WeaponGroup, 0, fire) { Name = "Missiles (Right)", Art = tilemap },
+                    WeaponGroup, 1, fire) { Name = "Missiles (Right)", Art = tilemap, HeatGenerated = -1 },
             });
         }
 

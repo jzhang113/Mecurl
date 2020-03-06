@@ -21,7 +21,7 @@ namespace Mecurl.State
         // ReSharper disable once CyclomaticComplexity
         public Option<ICommand> HandleKeyInput(int key)
         {
-            Actor player = (Actor)BaseGame.Player;
+            Mech player = (Mech)BaseGame.Player;
 
             if (Game._dead)
             {

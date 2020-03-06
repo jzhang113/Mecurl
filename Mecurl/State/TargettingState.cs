@@ -44,7 +44,7 @@ namespace Mecurl.State
             _path = new List<Loc>();
 
             _measure = measure;
-            var actor = (Actor)_source;
+            var actor = (Mech)_source;
             _inRange = zone.GetAllValidTargets(actor.Pos, actor.Facing, _measure, true);
 
             // Pick out the interesting targets.
