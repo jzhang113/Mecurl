@@ -13,7 +13,7 @@ namespace Engine
         public static Color Wall = Swatch.DbStone;
 
         // Units
-        public static Color Player = Swatch.DbLight;
+        public static Color Player = Color.Wheat;
 
         // UI
         public static Color Path = Swatch.Alternate;

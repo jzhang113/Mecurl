@@ -9,13 +9,14 @@
         // UI constants
         public const int MAP_WIDTH = 200;
         public const int MAP_HEIGHT = 200;
-        public const int MAPVIEW_WIDTH = 120;
+        public const int MAPVIEW_WIDTH = 100;
         public const int MAPVIEW_HEIGHT = 80;
         public const int SIDEBAR_WIDTH = 20;
-        public const int MESSAGE_HEIGHT = 1;
+        public const int SIDEBAR_R_WIDTH = 15;
+        public const int MESSAGE_HEIGHT = 5;
 
-        public const int SCREEN_WIDTH = MAPVIEW_WIDTH + SIDEBAR_WIDTH + 1;
-        public const int SCREEN_HEIGHT = MAPVIEW_HEIGHT + 1;
+        public const int SCREEN_WIDTH = MAPVIEW_WIDTH + SIDEBAR_WIDTH + SIDEBAR_R_WIDTH + 2;
+        public const int SCREEN_HEIGHT = MAPVIEW_HEIGHT + MESSAGE_HEIGHT + 1;
 
         public const char HEADER_LEFT = '─';  // 196
         public const char HEADER_RIGHT = '─';

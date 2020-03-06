@@ -14,7 +14,7 @@ namespace Mecurl.UI
     {
         private static readonly Color brightGreen = Color.FromArgb(48, 238, 48);
         private static readonly Color golden = Color.FromArgb(217, 163, 0);
-        private static TileMap placeholder;
+        private static readonly TileMap placeholder;
 
         static InfoPanel()
         {
@@ -73,7 +73,7 @@ namespace Mecurl.UI
 
                 Terminal.Color(Colors.Text);
                 Terminal.Layer(1);
-                DrawBar(layer, 1, y, layer.Width, 0, '░');
+                DrawBar(layer, 1, y, layer.Width - 1, 0, '░');
 
                 Terminal.Layer(2);
                 layer.Print(1, y++, p.Name);
@@ -118,7 +118,7 @@ namespace Mecurl.UI
                     }
 
                     Terminal.Layer(1);
-                    DrawBar(layer, 1, y, cooldown, 0, '░');
+                    DrawBar(layer, 1, y, cooldown - 1, 0, '░');
 
                     Terminal.Layer(2);
                     layer.Print(1, y++, w.Name);

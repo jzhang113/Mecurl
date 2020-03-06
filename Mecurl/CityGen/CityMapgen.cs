@@ -201,6 +201,19 @@ namespace Mecurl.CityGen
 
         protected override void PlaceActors()
         {
+            for (int i = 0; i < 10; i++)
+            {
+                Actors.Mech m = new Actors.Mech(Map.GetRandomOpenPoint(), 1, 'x', Color.Red)
+                {
+                    PartHandler = new Parts.PartHandler(Direction.N, new List<Parts.Part>()
+                    {
+                        new Parts.Part(1, 1, new Loc(0, 0), Direction.N, new Parts.RotateChar[]{ new Parts.RotateChar('x') })
+                    })
+                };
+
+                Map.AddActor(m);
+            }
+
             // find a sufficiently large place to place the mech
             Rectangle playerBounds = ((Actors.Mech)Game.Player).PartHandler.Bounds;
             int minClearance = Math.Max(playerBounds.Width, playerBounds.Height);

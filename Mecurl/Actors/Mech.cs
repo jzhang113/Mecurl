@@ -12,8 +12,11 @@ namespace Mecurl.Actors
 {
     public class Mech : BaseActor
     {
-        public PartHandler PartHandler { get; protected set; }
+        // HACK: this chain of initialization is problematic
+        // we need Parts to build a PartHandler, but Weapons need a WeaponGroup, which in turn need a Mech
+        public PartHandler PartHandler { get; set; }
         public WeaponGroup WeaponGroup { get; protected set; }
+
         public double CurrentHeat { get; internal set; }
 
         public Direction Facing => PartHandler.Facing;

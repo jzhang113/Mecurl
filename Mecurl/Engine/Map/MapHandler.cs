@@ -692,6 +692,6 @@ namespace Engine.Map
             }
         }
 
-        private int ToIndex(in Loc pos) => pos.X + Width * pos.Y;
+        internal int ToIndex(in Loc pos) => pos.X + Width * pos.Y;
     }
 }
