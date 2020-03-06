@@ -22,9 +22,6 @@ namespace Mecurl
     {
         public static MessagePanel MessagePanel { get; private set; }
 
-        internal static int _level;
-        internal static bool _dead;
-
         private static LayerInfo _mapLayer;
         private static LayerInfo _infoLayer;
         private static LayerInfo _radarLayer;
@@ -39,7 +36,7 @@ namespace Mecurl
                 EngineConsts.MAPVIEW_WIDTH, EngineConsts.MAPVIEW_HEIGHT);
 
             _infoLayer = new LayerInfo("Info", 1,
-                1, 1, EngineConsts.SIDEBAR_WIDTH, EngineConsts.MAPVIEW_HEIGHT);
+                1, 1, EngineConsts.SIDEBAR_WIDTH, EngineConsts.SCREEN_HEIGHT);
 
             _radarLayer = new LayerInfo("Radar", 1,
                 EngineConsts.SIDEBAR_WIDTH + EngineConsts.MAPVIEW_WIDTH + 3, 1,
@@ -47,7 +44,7 @@ namespace Mecurl
 
             _objectiveLayer = new LayerInfo("Objective", 1,
                 EngineConsts.SIDEBAR_WIDTH + EngineConsts.MAPVIEW_WIDTH + 3,
-                80 - EngineConsts.SIDEBAR_R_WIDTH - 1,
+                EngineConsts.SCREEN_HEIGHT - EngineConsts.SIDEBAR_R_WIDTH + 1,
                 EngineConsts.SIDEBAR_R_WIDTH, EngineConsts.SIDEBAR_R_WIDTH);
 
             _messageLayer = new LayerInfo("Message", 1,
@@ -58,6 +55,7 @@ namespace Mecurl
 
             StateHandler = new StateHandler(MenuState.Instance, new Dictionary<Type, LayerInfo>
             {
+                [typeof(GameOverState)] = _mapLayer,
                 [typeof(NormalState)] = _mapLayer,
                 [typeof(TargettingState)] = _mapLayer,
                 [typeof(MenuState)] = _mainLayer,
@@ -90,28 +88,30 @@ namespace Mecurl
             var reader = new RexReader("AsciiArt/missileLauncher.xp");
             var tilemap = reader.GetMap();
             var mp = (Mech)Player;
+            var core =
+                new Part(3, 3, new Loc(0, 0), initialFacing,
+                    new RotateChar[9] { sr, b1, sl, b4, at, b3, sl, b2, sr }, 100)
+                { Name = "Core", HeatCapacity = 30, HeatRemoved = 0.5 };
 
             var ph = new PartHandler(initialFacing, new List<Part>()
             {
-                new Part(3, 3, new Loc(0, 0), initialFacing,
-                    new RotateChar[9] { sr, b1, sl , b4, at, b3, sl, b2, sr }) { Name = "Core", HeatCapacity = 30, HeatRemoved = 0.5 },
+                core,
                 new Part(1, 2, new Loc(-2, 0), initialFacing,
-                    new RotateChar[2] { arn, arn}) { Name = "Leg" },
+                    new RotateChar[2] { arn, arn}, 30) { Name = "Leg" },
                 new Part(1, 2, new Loc(2, 0), initialFacing,
-                    new RotateChar[2] { arn, arn}) { Name = "Leg" },
+                    new RotateChar[2] { arn, arn}, 30) { Name = "Leg" },
                 new Weapon(3, 3, new Loc(-2, 2), initialFacing,
-                    new RotateChar[9] { b2, b4, sl, b2, b4, b4, sl, b2, b2 },
+                    new RotateChar[9] { b2, b4, sl, b2, b4, b4, sl, b2, b2 }, 50,
                     mp.WeaponGroup, 0, fire) { Name = "Missiles (Left)", Art = tilemap, HeatGenerated = 40, Cooldown = 100  },
                 new Weapon(3, 3, new Loc(2, 2), initialFacing,
-                    new RotateChar[9] { sr, b4, b2, b4, b4, b2, b2, b2, sr },
+                    new RotateChar[9] { sr, b4, b2, b4, b4, b2, b2, b2, sr }, 50,
                     mp.WeaponGroup, 0, fire) { Name = "Missiles (Right)", Art = tilemap, HeatGenerated = 3, Cooldown = 6 },
             });
-
+            ph.Core = core;
             mp.PartHandler = ph;
 
 
             EventScheduler = new EventScheduler(Player, AnimationHandler);
-            _dead = true;
         }
 
         public void Start()
@@ -143,40 +143,38 @@ namespace Mecurl
             AnimationHandler.Clear();
 
             //Colors.RandomizeMappings();
-            _dead = false;
-
-            _level = 0;
-            NextLevel();
+            SetupLevel();
             StateHandler.PushState(NormalState.Instance);
             _mainLayer.Clear();
         }
 
-        internal static void NextLevel()
+        internal static void SetupLevel()
         {
             AnimationHandler.Clear();
             EventScheduler.Clear();
 
-            if (_level >= 5)
-            {
-                MessagePanel.AddMessage("This appears to be the end of the dungeon");
-                MessagePanel.AddMessage("You win!");
-                _dead = true;
-            }
-            else
-            {
-                MessagePanel.AddMessage($"You arrive at level {_level+1}");
-            }
+            MessagePanel.AddMessage($"Mission Start");
 
-            var mapgen = new CityMapgen(EngineConsts.MAP_WIDTH, EngineConsts.MAP_HEIGHT, _level);
+            var mapgen = new CityMapgen(EngineConsts.MAP_WIDTH, EngineConsts.MAP_HEIGHT, 0);
             MapHandler = mapgen.Generate();
             MapHandler.Refresh();
-            _level++;
         }
 
-        internal void GameOver()
+        internal static void GameOver()
         {
-            MessagePanel.AddMessage("Game over! Press any key to continue");
-            _dead = true;
+            MessagePanel.AddMessage("System shutting down. Press [[enter]] to continue");
+            Game.StateHandler.PushState(GameOverState.Instance);
+        }
+
+        protected override void ProcessTickEvents()
+        {
+            var player = (Mech)Player;
+            player.ProcessTick();
+
+            if (Player.DeathCheck())
+            {
+                player.TriggerDeath();
+            }
         }
 
         public override void Render()

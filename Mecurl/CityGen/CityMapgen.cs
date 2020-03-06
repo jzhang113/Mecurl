@@ -203,12 +203,17 @@ namespace Mecurl.CityGen
         {
             for (int i = 0; i < 10; i++)
             {
+                var core = new Parts.Part(1, 1, new Loc(0, 0), Direction.N, new Parts.RotateChar[] { new Parts.RotateChar('x') }, 10);
+
                 Actors.Mech m = new Actors.Mech(Map.GetRandomOpenPoint(), 1, 'x', Color.Red)
                 {
                     PartHandler = new Parts.PartHandler(Direction.N, new List<Parts.Part>()
                     {
-                        new Parts.Part(1, 1, new Loc(0, 0), Direction.N, new Parts.RotateChar[]{ new Parts.RotateChar('x') })
+                        core
                     })
+                    {
+                        Core = core
+                    }
                 };
 
                 Map.AddActor(m);

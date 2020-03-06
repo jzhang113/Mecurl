@@ -11,8 +11,8 @@ namespace Mecurl.Parts
         internal int Id { get; }
 
         public string Name { get; set; }
-        public double MaxHealth { get; set; }
-        public double Health { get; set; }
+        public double MaxStability { get; set; }
+        public double Stability { get; set; }
         public TileMap Art { get; set; }
 
         public double HeatGenerated { get; set; }
@@ -30,7 +30,7 @@ namespace Mecurl.Parts
         public Loc Center { get; private set; }
         public Rectangle Bounds { get; private set; }
 
-        public Part(int width, int height, Loc center, Direction facing, RotateChar[] structure)
+        public Part(int width, int height, Loc center, Direction facing, RotateChar[] structure, double stability)
         {
             Id = GlobalId++;
             Structure = structure;
@@ -41,8 +41,8 @@ namespace Mecurl.Parts
             Facing = facing;
             UpdateBounds();
 
-            MaxHealth = 100;
-            Health = MaxHealth;
+            MaxStability = stability;
+            Stability = stability;
         }
 
         private void UpdateBounds()

@@ -33,7 +33,7 @@ namespace Mecurl.Actors
 
             if (Game.MapHandler.Field[Pos].IsVisible)
             {
-                Game.MessagePanel.AddMessage($"{Name} dies");
+                Game.MessagePanel.AddMessage($"{Name} destroyed");
                 Game.MapHandler.Refresh();
             }
 
@@ -45,6 +45,8 @@ namespace Mecurl.Actors
             ProcessTick();
             return Option.Some<ICommand>(new WaitCommand(this));
         }
+
+        public override bool DeathCheck() => PartHandler.Core.Stability <= 0;
 
         internal void RotateLeft()
         {
@@ -82,7 +84,7 @@ namespace Mecurl.Actors
                     Loc currPos = Pos + (p.Bounds.Left + dx, p.Bounds.Top + dy);
                     if (targets.Contains(currPos))
                     {
-                        p.Health -= power;
+                        p.Stability -= power;
                         break;
                     }
                 }

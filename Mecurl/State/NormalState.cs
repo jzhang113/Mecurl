@@ -22,13 +22,7 @@ namespace Mecurl.State
         public Option<ICommand> HandleKeyInput(int key)
         {
             Mech player = (Mech)BaseGame.Player;
-
-            if (Game._dead)
-            {
-                Game.StateHandler.Reset();
-                return Option.None<ICommand>();
-            }
-
+            
             switch (InputMapping.GetNormalInput(key))
             {
                 case NormalInput.None:

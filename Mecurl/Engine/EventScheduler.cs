@@ -49,7 +49,6 @@ namespace Engine
                         _schedule[entity] = entity.Speed;
                         if (entity == _player)
                         {
-                            ((Mecurl.Actors.Mech)_player).ProcessTick();
                             Turn++;
                             done = true;
                         }

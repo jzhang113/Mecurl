@@ -67,6 +67,7 @@ namespace Engine
                         {
                             if (!PrevCancelled)
                             {
+                                ProcessTickEvents();
                                 MapHandler.Refresh();
                                 EventScheduler.Update();
                             }
@@ -93,6 +94,9 @@ namespace Engine
 
             Terminal.Close();
         }
+
+        // Any events that should happen once per player turn (such as checking for player death)
+        protected abstract void ProcessTickEvents();
 
         public abstract void Render();
     }

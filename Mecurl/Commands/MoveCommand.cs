@@ -23,10 +23,13 @@ namespace Mecurl.Commands
             // Cancel out of bound moves.
             var bounds = Source.PartHandler.Bounds;
             var topleft = new Loc(_nextPos.X + bounds.Left, _nextPos.Y + bounds.Top);
-            var botright = new Loc(_nextPos.X + bounds.Bottom - 2, _nextPos.Y + bounds.Right - 2);
+            var botright = new Loc(_nextPos.X + bounds.Bottom - 1, _nextPos.Y + bounds.Right - 1);
 
             if (!Game.MapHandler.Field.IsValid(topleft) || !Game.MapHandler.Field.IsValid(botright))
+            {
+                Game.PrevCancelled = true;
                 return Option.None<ICommand>();
+            }
 
             // Don't walk into walls, unless the Actor is currently phasing or we are already
             // inside a wall (to prevent getting stuck).

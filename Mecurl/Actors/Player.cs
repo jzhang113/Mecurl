@@ -17,5 +17,11 @@ namespace Mecurl.Actors
         {
             return Option.None<ICommand>();
         }
+
+        public override Option<ICommand> TriggerDeath()
+        {
+            Game.GameOver();
+            return Option.None<ICommand>();
+        }
     }
 }

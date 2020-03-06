@@ -22,7 +22,6 @@ namespace Engine
         public int Health { get; set; }
 
         public int Speed { get; protected set; } = 100;
-        public bool IsDead => Health <= 0;
 
         protected BaseActor(in Loc pos, int hp, char symbol, Color color)
         {
@@ -41,9 +40,11 @@ namespace Engine
 
         public abstract Option<ICommand> TriggerDeath();
 
+        public abstract bool DeathCheck();
+
         public Option<ICommand> Act()
         {
-            if (IsDead)
+            if (DeathCheck())
                 return TriggerDeath();
             else
                 return GetAction();

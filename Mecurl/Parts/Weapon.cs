@@ -13,8 +13,8 @@ namespace Mecurl.Parts
         internal int PrevGroup { get; set; }
 
         public Weapon(
-            int width, int height, Loc center, Direction facing, RotateChar[] structure,
-            WeaponGroup wg, int group, Func<Weapon, Option<ICommand>> activate) : base(width, height, center, facing, structure)
+            int width, int height, Loc center, Direction facing, RotateChar[] structure, double stability,
+            WeaponGroup wg, int group, Func<Weapon, Option<ICommand>> activate) : base(width, height, center, facing, structure, stability)
         {
             PrevGroup = group;
             Activate = activate;

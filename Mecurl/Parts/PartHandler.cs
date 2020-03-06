@@ -10,6 +10,9 @@ namespace Mecurl.Parts
 {
     public class PartHandler : IEnumerable<Part>
     {
+        // TODO: should probably be passed in
+        public Part Core { get; internal set; }
+
         public ICollection<Part> PartList { get; }
         public Rectangle Bounds { get; private set; }
         public Direction Facing { get; private set; }

@@ -30,6 +30,7 @@ namespace Mecurl.UI
             {
                 TopLeftChar = '┌',
                 BottomLeftChar = '└',
+                BottomRightChar = '┴',
                 TopChar = '─', // 196
                 BottomChar = '─',
                 LeftChar = '│' // 179
@@ -134,7 +135,7 @@ namespace Mecurl.UI
         private static int DrawPart(LayerInfo layer, int y, Part p)
         {
             //Terminal.Color(Color.White);
-            layer.Print(1, y, $"Stab:{p.Health / p.MaxHealth * 100}%");
+            layer.Print(1, y, $"Stab:{(int)(p.Stability / p.MaxStability * 100)}%");
 
             if (p.Cooldown > 0)
             {
