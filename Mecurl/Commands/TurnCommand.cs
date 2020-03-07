@@ -67,21 +67,8 @@ namespace Mecurl.Commands
                 {
                     for (int y = 0; y < p.Bounds.Height; y++)
                     {
-                        // see MoveCommand for comments on these calculations
-                        int boundsIndex = -1;
-                        if (p.Facing == Direction.N || p.Facing == Direction.S)
-                        {
-                            boundsIndex = x + y * p.Width;
-                        }
-                        else if (p.Facing == Direction.W || p.Facing == Direction.E)
-                        {
-                            boundsIndex = x * p.Width + y;
-                        }
-
-                        if (p.IsPassable(boundsIndex))
-                        {
-                            continue;
-                        }
+                        int boundsIndex = p.BoundingIndex(x, y);
+                        if (p.IsPassable(boundsIndex)) continue;
 
                         int newX = Source.Pos.X + x + p.Bounds.Left;
                         int newY = Source.Pos.Y + y + p.Bounds.Top;

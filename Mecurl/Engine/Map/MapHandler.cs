@@ -27,6 +27,10 @@ namespace Engine.Map
 
         private readonly Measure _measure;
 
+        // HACK: this should really be a quadtree or something
+        // Tiles of each mech on  the map
+        internal (char, System.Drawing.Color)[,] MechTileMap { get; }
+
         public MapHandler(int width, int height, int level)
         {
             Width = width;
@@ -41,6 +45,8 @@ namespace Engine.Map
             Items = new Dictionary<int, BaseItem>();
 
             _measure = EngineConsts.MEASURE;
+
+            MechTileMap = new (char, System.Drawing.Color)[width, height];
         }
 
         // Recalculate the state of the world after movements happen. If only light recalculations
@@ -75,7 +81,8 @@ namespace Engine.Map
             unitTile.IsOccupied = false;
             unitTile.BlocksLight = false;
 
-            // unit.State = ActorState.Dead;
+            RemoveFromMechTileMap(unit);
+
             BaseGame.EventScheduler.RemoveActor(unit);
             return true;
         }
@@ -91,11 +98,13 @@ namespace Engine.Map
             tile.IsOccupied = false;
             tile.BlocksLight = false;
             Units.Remove(ToIndex(actor.Pos));
+            RemoveFromMechTileMap(actor);
 
             actor.Pos = pos;
             newTile.IsOccupied = true;
             newTile.BlocksLight = actor.BlocksLight;
             Units.Add(ToIndex(pos), actor);
+            AddToMechTileMap(actor, pos);
 
             return true;
         }
@@ -594,6 +603,12 @@ namespace Engine.Map
                     if (tile.IsVisible)
                     {
                         tile.Draw(layer);
+
+                        (char mechTile, System.Drawing.Color color) = MechTileMap[newX, newY];
+                        Terminal.Color(color);
+                        Terminal.Layer(2);
+                        layer.Put(dx, dy, mechTile);
+                        Terminal.Layer(1);
                     }
                     else if (tile.IsWall)
                     {
@@ -625,7 +640,8 @@ namespace Engine.Map
 
             foreach (BaseActor unit in Units.Values)
             {
-                if (Camera.OnScreen(unit.Pos) && Field[unit.Pos].IsVisible)
+                // mechs are handled by MechTileMap
+                if (Camera.OnScreen(unit.Pos) && Field[unit.Pos].IsVisible && !(unit is Mecurl.Actors.Mech))
                     unit.Draw(layer);
             }
         }
@@ -693,5 +709,45 @@ namespace Engine.Map
         }
 
         internal int ToIndex(in Loc pos) => pos.X + Width * pos.Y;
+
+        // managing the MechTileMap
+        internal void RemoveFromMechTileMap(BaseActor actor)
+        {
+            var mech = (Mecurl.Actors.Mech)actor;
+
+            foreach (var part in mech.PartHandler.PartList)
+            {
+                for (int x = 0; x < part.Bounds.Width; x++)
+                {
+                    for (int y = 0; y < part.Bounds.Height; y++)
+                    {
+                        // we still need to check if a part is not empty in the mech
+                        // otherwise, we might accidentally delete part of something else
+                        int boundsIndex = part.BoundingIndex(x, y);
+                        if (part.IsPassable(boundsIndex)) continue;
+
+                        MechTileMap[x + part.Bounds.Left + actor.Pos.X, y + part.Bounds.Top + actor.Pos.Y].Item1 = ' ';
+                    }
+                }
+            }
+        }
+
+        internal void AddToMechTileMap(BaseActor actor, Loc pos)
+        {
+            var mech = (Mecurl.Actors.Mech)actor;
+            foreach (var part in mech.PartHandler.PartList)
+            {
+                for (int x = 0; x < part.Bounds.Width; x++)
+                {
+                    for (int y = 0; y < part.Bounds.Height; y++)
+                    {
+                        int boundsIndex = part.BoundingIndex(x, y);
+                        if (part.IsPassable(boundsIndex)) continue;
+
+                        MechTileMap[x + part.Bounds.Left + pos.X, y + part.Bounds.Top + pos.Y] = (part.GetPiece(boundsIndex), actor.Color);
+                    }
+                }
+            }
+        }
     }
 }

@@ -52,12 +52,16 @@ namespace Mecurl.Actors
 
         internal void RotateLeft()
         {
+            Game.MapHandler.RemoveFromMechTileMap(this);
             PartHandler.RotateLeft();
+            Game.MapHandler.AddToMechTileMap(this, Pos);
         }
 
         internal void RotateRight()
         {
+            Game.MapHandler.RemoveFromMechTileMap(this);
             PartHandler.RotateRight();
+            Game.MapHandler.AddToMechTileMap(this, Pos);
         }
 
         internal void AssignDamage(ICollection<Loc> targets, double power)
@@ -106,7 +110,9 @@ namespace Mecurl.Actors
             foreach (Part p in removeList)
             {
                 // remove this part from any associated structures
+                Game.MapHandler.RemoveFromMechTileMap(this);
                 PartHandler.Remove(p);
+                Game.MapHandler.AddToMechTileMap(this, Pos);
 
                 // draw some debris
                 for (int x = 0; x < p.Bounds.Width; x++)
@@ -124,7 +130,6 @@ namespace Mecurl.Actors
                         }
                     }
                 }
-
             }
         }
 

@@ -62,7 +62,7 @@ namespace Mecurl.Parts
             Facing = Facing.Left().Left();
             Center = new Loc(Center.Y, -Center.X);
             Bounds = Rectangle.FromLTRB(Bounds.Top, -Bounds.Right + 1, Bounds.Bottom, -Bounds.Left + 1);
-         
+
             for (int i = 0; i < Structure.Length; i++)
             {
                 Structure[i] = Structure[i].Left;
@@ -99,6 +99,11 @@ namespace Mecurl.Parts
             return Structure[y].Char;
         }
 
+        // this is another indexing of Structure
+        // the problem here is that we always iterate over the array from left to right
+        // however, when we rotate the array, this left to right reading does not correspond
+        // with the indices that the rotated x and y correspond to
+        // thus, we need to apply an adjustment depending on the Facing
         internal int Adjust(int idx)
         {
             if (Facing == Direction.N)
@@ -116,6 +121,27 @@ namespace Mecurl.Parts
             else if (Facing == Direction.E)
             {
                 return Structure.Length - Width - idx / Width * Width + idx % Width;
+            }
+            else
+            {
+                return -1;
+            }
+        }
+
+        // this is actually a third indexing of Structure, and it depends on the current facing
+        // note that if the facing is N/S, then p.Bounds.Width == p.Width, so the boundsIndex
+        // correspond to the indices of Structure before adjustment
+        // however, if the facing is W/E, then the dimensions are flipped, so we need to compute
+        // index with x and y flipped and then adjust
+        internal int BoundingIndex(int x, int y)
+        {
+            if (Facing == Direction.N || Facing == Direction.S)
+            {
+                return x + y * Width;
+            }
+            else if (Facing == Direction.W || Facing == Direction.E)
+            {
+                return x * Width + y;
             }
             else
             {

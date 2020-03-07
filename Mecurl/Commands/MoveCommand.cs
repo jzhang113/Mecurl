@@ -1,5 +1,6 @@
 ﻿using Engine;
 using Mecurl.Actors;
+using Mecurl.Parts;
 using Optional;
 using System.Drawing;
 
@@ -39,29 +40,10 @@ namespace Mecurl.Commands
                 {
                     for (int y = 0; y < p.Bounds.Height; y++)
                     {
-                        // here we are looping over the *bounding box*
                         // we need to go from the bounding box locations to the actual pieces to
                         // check if they are passable
-
-                        // note that if the facing is N/S, then p.Bounds.Width == p.Width, so the
-                        // boundsIndex correspond to the indices of p.Structure before adjustment
-                        // however, if the facing is W/E, then the dimensions are flipped, so we
-                        // need to compute the correct corresponding index of p.Structure and then
-                        // adjust
-                        int boundsIndex = -1;
-                        if (p.Facing == Direction.N || p.Facing == Direction.S)
-                        {
-                            boundsIndex = x + y * p.Width;
-                        }
-                        else if (p.Facing == Direction.W || p.Facing == Direction.E)
-                        {
-                            boundsIndex = x * p.Width + y;
-                        }
-
-                        if (p.IsPassable(boundsIndex))
-                        {
-                            continue;
-                        }
+                        int boundsIndex = p.BoundingIndex(x, y);
+                        if (p.IsPassable(boundsIndex)) continue;
 
                         int newX = x + p.Bounds.Left + _nextPos.X;
                         int newY = y + p.Bounds.Top + _nextPos.Y;
