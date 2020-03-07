@@ -29,6 +29,8 @@ namespace Mecurl
         private static LayerInfo _messageLayer;
         private static LayerInfo _mainLayer;
 
+        private static TileMap _tilemap;
+
         public Game() : base()
         {
             _mapLayer = new LayerInfo("Map", 1,
@@ -65,36 +67,31 @@ namespace Mecurl
             AnimationHandler = new AnimationHandler();
             MessagePanel = new MessagePanel(EngineConsts.MESSAGE_HISTORY_COUNT);
 
+            var reader = new RexReader("AsciiArt/missileLauncher.xp");
+            _tilemap = reader.GetMap();
+
             Player = new Player(new Loc(1, 1));
 
+            EventScheduler = new EventScheduler(typeof(Player), AnimationHandler);
+        }
 
+        internal static void BuildMech(Mech mech, Func<Weapon, Option<ICommand>> fire)
+        {
             Direction initialFacing = Direction.N;
-            Option<ICommand> fire(Weapon w)
-            {
-                var m = (Mech)Game.Player;
-                WeaponGroup wg = m.WeaponGroup;
-
-                Game.StateHandler.PushState(new TargettingState(Game.MapHandler, m, Measure.Euclidean,
-                    new TargetZone(TargetShape.Range, 20, 2), targets =>
-                    {
-                        Game.StateHandler.PopState();
-                        Game.MessagePanel.Add($"{w.Name} fired");
-                        wg.UpdateState(w);
-
-                        var explosionAnim = Option.Some<IAnimation>(new ExplosionAnimation(targets, Colors.Fire));
-                        return Option.Some<ICommand>(new AttackCommand(m, 400, 10, targets, explosionAnim));
-                    }));
-
-                return Option.None<ICommand>();
-            }
-
-            var reader = new RexReader("AsciiArt/missileLauncher.xp");
-            var tilemap = reader.GetMap();
-            var mp = (Mech)Player;
             var core =
                 new Part(3, 3, new Loc(0, 0), initialFacing,
                     new RotateChar[9] { sr, b1, sl, b4, at, b3, sl, b2, sr }, 100)
                 { Name = "Core", HeatCapacity = 30, HeatRemoved = 0.5 };
+
+            var w1 = new Weapon(3, 3, new Loc(-2, 2), initialFacing,
+                    new RotateChar[9] { b2, b4, sl, b2, b4, b4, sl, b2, b2 }, 50,
+                    fire)
+            { Name = "Missiles (Left)", Art = _tilemap, HeatGenerated = 40, Cooldown = 100 };
+
+            var w2 = new Weapon(3, 3, new Loc(2, 2), initialFacing,
+                    new RotateChar[9] { sr, b4, b2, b4, b4, b2, b2, b2, sr }, 50,
+                    fire)
+            { Name = "Missiles (Right)", Art = _tilemap, HeatGenerated = 3, Cooldown = 6 };
 
             var ph = new PartHandler(initialFacing, new List<Part>()
             {
@@ -103,18 +100,40 @@ namespace Mecurl
                     new RotateChar[2] { arn, arn}, 30) { Name = "Leg" },
                 new Part(1, 2, new Loc(2, 0), initialFacing,
                     new RotateChar[2] { arn, arn}, 30) { Name = "Leg" },
-                new Weapon(3, 3, new Loc(-2, 2), initialFacing,
-                    new RotateChar[9] { b2, b4, sl, b2, b4, b4, sl, b2, b2 }, 50,
-                    mp.WeaponGroup, 0, fire) { Name = "Missiles (Left)", Art = tilemap, HeatGenerated = 40, Cooldown = 100  },
-                new Weapon(3, 3, new Loc(2, 2), initialFacing,
-                    new RotateChar[9] { sr, b4, b2, b4, b4, b2, b2, b2, sr }, 50,
-                    mp.WeaponGroup, 0, fire) { Name = "Missiles (Right)", Art = tilemap, HeatGenerated = 3, Cooldown = 6 },
-            });
-            ph.Core = core;
-            mp.PartHandler = ph;
+                w1, w2
+            })
+            {
+                Core = core
+            };
+            mech.PartHandler = ph;
 
+            mech.PartHandler.WeaponGroup.Add(w1, 0);
+            mech.PartHandler.WeaponGroup.Add(w2, 0);
+        }
 
-            EventScheduler = new EventScheduler(Player, AnimationHandler);
+        internal static Option<ICommand> AiFireMethod(Weapon w)
+        {
+            return Option.None<ICommand>();
+        }
+
+        private static Option<ICommand> PlayerFireMethod(Weapon w)
+        {
+            var m = (Mech)Game.Player;
+            WeaponGroup wg = m.PartHandler.WeaponGroup;
+
+            Game.StateHandler.PushState(new TargettingState(Game.MapHandler, m, Measure.Euclidean,
+                new TargetZone(TargetShape.Range, 20, 2), targets =>
+                {
+                    Game.StateHandler.PopState();
+                    Game.MessagePanel.Add($"[color=info]Info[/color]: {w.Name} fired");
+                    m.UpdateHeat(w.HeatGenerated);
+                    wg.UpdateState(w);
+
+                    var explosionAnim = Option.Some<IAnimation>(new ExplosionAnimation(targets, Colors.Fire));
+                    return Option.Some<ICommand>(new AttackCommand(m, 400, 10, targets, explosionAnim));
+                }));
+
+            return Option.None<ICommand>();
         }
 
         public void Start()
@@ -155,6 +174,9 @@ namespace Mecurl
 
         internal static void SetupLevel()
         {
+            Player = new Player(new Loc(1, 1));
+            BuildMech((Mech)Player, PlayerFireMethod);
+
             AnimationHandler.Clear();
             EventScheduler.Clear();
 
@@ -167,7 +189,8 @@ namespace Mecurl
 
         internal static void GameOver()
         {
-            MessagePanel.Add("System shutting down. Press [[enter]] to continue");
+            MessagePanel.Add("[color=err]System shutting down[/color]");
+            MessagePanel.Add("Mission Failed. Press [[Enter]] to continue");
             Game.StateHandler.PushState(GameOverState.Instance);
         }
 

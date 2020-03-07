@@ -4,7 +4,6 @@ using Engine.Drawing;
 using Mecurl.Commands;
 using Mecurl.Engine;
 using Mecurl.Parts;
-using Mecurl.UI;
 using Optional;
 using System;
 using System.Collections.Generic;
@@ -17,7 +16,6 @@ namespace Mecurl.Actors
         // HACK: this chain of initialization is problematic
         // we need Parts to build a PartHandler, but Weapons need a WeaponGroup, which in turn need a Mech
         public PartHandler PartHandler { get; set; }
-        public WeaponGroup WeaponGroup { get; protected set; }
 
         public double CurrentHeat { get; private set; }
         public Direction Facing => PartHandler.Facing;
@@ -26,7 +24,6 @@ namespace Mecurl.Actors
 
         public Mech(in Loc pos, int hp, char symbol, Color color) : base(pos, hp, symbol, color)
         {
-            WeaponGroup = new WeaponGroup(this);
             CurrentHeat = 0;
 
             _messages = new DummyMessageHandler();
@@ -38,7 +35,7 @@ namespace Mecurl.Actors
 
             if (Game.MapHandler.Field[Pos].IsVisible)
             {
-                Game.MessagePanel.Add($"{Name} destroyed");
+                Game.MessagePanel.Add($"[color=info]Info[/color]: {Name} destroyed");
                 Game.MapHandler.Refresh();
             }
 
@@ -94,7 +91,7 @@ namespace Mecurl.Actors
                         // some damage computation here
                         double damage = power;
                         p.Stability -= damage;
-                        _messages.Add($"{p.Name} took {damage} damage");
+                        _messages.Add($"[color=warn]Alert[/color]: {p.Name} took {damage} damage");
 
                         if (p.Stability <= 0)
                         {
@@ -110,11 +107,6 @@ namespace Mecurl.Actors
             {
                 // remove this part from any associated structures
                 PartHandler.Remove(p);
-
-                if (p is Weapon w)
-                {
-                    WeaponGroup.Remove(w);
-                }
 
                 // draw some debris
                 for (int x = 0; x < p.Bounds.Width; x++)
@@ -148,7 +140,7 @@ namespace Mecurl.Actors
 
                     if (p.CurrentCooldown == 0)
                     {
-                        _messages.Add($"{p.Name} ready");
+                        _messages.Add($"[color=info]Info[/color]: {p.Name} ready");
                     }
                 }
             }

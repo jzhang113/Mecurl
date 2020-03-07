@@ -14,6 +14,8 @@ namespace Mecurl.Parts
         public Part Core { get; internal set; }
 
         public ICollection<Part> PartList { get; }
+        public WeaponGroup WeaponGroup { get; }
+
         public Rectangle Bounds { get; private set; }
         public Direction Facing { get; private set; }
         public double TotalHeatCapacity { get; private set; }
@@ -22,8 +24,9 @@ namespace Mecurl.Parts
         {
             Facing = facing;
             PartList = new List<Part>();
-            Bounds = new Rectangle(0, 0, 0, 0);
+            WeaponGroup = new WeaponGroup();
 
+            Bounds = new Rectangle(0, 0, 0, 0);
             TotalHeatCapacity = 0;
         }
 
@@ -63,6 +66,11 @@ namespace Mecurl.Parts
         public void Remove(Part p)
         {
             PartList.Remove(p);
+
+            if (p is Weapon w)
+            {
+                WeaponGroup.Remove(w);
+            }
 
             // HACK: I don't know a way to fix the bounding box without recalculating it
             int left = 0;

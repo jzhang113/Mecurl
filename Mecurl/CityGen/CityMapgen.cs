@@ -203,16 +203,8 @@ namespace Mecurl.CityGen
             {
                 var core = new Parts.Part(1, 1, new Loc(0, 0), Direction.N, new Parts.RotateChar[] { new Parts.RotateChar('x') }, 10);
 
-                Actors.Mech m = new Actors.Mech(Map.GetRandomOpenPoint(), 1, 'x', Color.Red)
-                {
-                    PartHandler = new Parts.PartHandler(Direction.N, new List<Parts.Part>()
-                    {
-                        core
-                    })
-                    {
-                        Core = core
-                    }
-                };
+                Actors.Mech m = new Actors.Mech(Map.GetRandomOpenPoint(), 100, 'x', Color.Red);
+                Game.BuildMech(m, Game.AiFireMethod);
 
                 Map.AddActor(m);
             }

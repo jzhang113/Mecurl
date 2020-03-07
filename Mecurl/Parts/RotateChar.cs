@@ -59,5 +59,9 @@
         public static RotateChar are = arn.Right;
         public static RotateChar ars = are.Right;
         public static RotateChar arw = ars.Right;
+        public static RotateChar trn = new RotateChar((char)0xE010, (char)0xE011, (char)0xE012, (char)0xE013);
+        public static RotateChar tre = trn.Right;
+        public static RotateChar trs = tre.Right;
+        public static RotateChar trw = trs.Right;
     }
 }

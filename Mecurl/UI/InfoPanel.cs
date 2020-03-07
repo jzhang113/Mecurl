@@ -85,15 +85,16 @@ namespace Mecurl.UI
             }
 
             y++;
-            for (int i = 0; i < player.WeaponGroup.Groups.Length; i++)
+            WeaponGroup wg = player.PartHandler.WeaponGroup;
+            for (int i = 0; i < wg.Groups.Length; i++)
             {
-                List<Weapon> group = player.WeaponGroup.Groups[i];
+                List<Weapon> group = wg.Groups[i];
                 if (group.Count == 0) continue;
 
                 Terminal.Color(golden);
                 layer.Print(y++, $"Weapon Group {i + 1}");
                 layer.Print(y++, $"────────────────────");
-                var currWeaponIndex = player.WeaponGroup.NextIndex(i);
+                var currWeaponIndex = wg.NextIndex(i);
 
                 for (int j = 0; j < group.Count; j++)
                 {

@@ -10,13 +10,10 @@ namespace Mecurl.Parts
     {
         internal List<Weapon>[] Groups { get; }
 
-        private Mech _parent;
         private int[] _nextWeapon;
 
-        public WeaponGroup(Mech parent)
+        public WeaponGroup()
         {
-            _parent = parent;
-
             const int weaponGroupCount = 6;
             Groups = new List<Weapon>[weaponGroupCount];
             _nextWeapon = new int[weaponGroupCount];
@@ -47,31 +44,30 @@ namespace Mecurl.Parts
         public void Add(Weapon w, int group)
         {
             Groups[group].Add(w);
+            w.Group = group;
         }
 
         public void Remove(Weapon w)
         {
-            Groups[w.PrevGroup].Remove(w);
+            Groups[w.Group].Remove(w);
+            w.Group = -1;
         }
 
         public void Reassign(Weapon w, int newGroup)
         {
-            Groups[w.PrevGroup].Remove(w);
+            Groups[w.Group].Remove(w);
             Groups[newGroup].Add(w);
-            w.PrevGroup = newGroup;
+            w.Group = newGroup;
         }
 
         // handling state stuff that needs to happen after the weapon has been fired
         internal void UpdateState(Weapon weapon)
         {
-            // update heat
-            _parent.UpdateHeat(weapon.HeatGenerated);
-
             // update cooldown
             weapon.CurrentCooldown = weapon.Cooldown;
-            List<Weapon> group = Groups[weapon.PrevGroup];
+            List<Weapon> group = Groups[weapon.Group];
             int minCooldown = weapon.CurrentCooldown;
-            int currIndex = _nextWeapon[weapon.PrevGroup];
+            int currIndex = _nextWeapon[weapon.Group];
             int index = currIndex;
 
             for (int i = 0; i < group.Count; i++)
@@ -86,7 +82,7 @@ namespace Mecurl.Parts
                 }
             }
 
-            _nextWeapon[weapon.PrevGroup] = index;
+            _nextWeapon[weapon.Group] = index;
         }
 
         private int IndexDist(int i, int j, int groupLength)

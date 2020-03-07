@@ -8,14 +8,14 @@ namespace Engine
     public class EventScheduler
     {
         private readonly IDictionary<ISchedulable, int> _schedule;
-        private readonly BaseActor _player;
+        private readonly Type _playerType;
         private readonly AnimationHandler _animationHandler;
 
         public static int Turn { get; private set; }
 
-        public EventScheduler(BaseActor player, AnimationHandler handler)
+        public EventScheduler(Type playerType, AnimationHandler handler)
         {
-            _player = player;
+            _playerType = playerType;
             _animationHandler = handler;
             _schedule = new Dictionary<ISchedulable, int>();
             Turn = 0;
@@ -47,7 +47,7 @@ namespace Engine
                     if (timeTilAct <= 0)
                     {
                         _schedule[entity] = entity.Speed;
-                        if (entity == _player)
+                        if (entity.GetType() == _playerType)
                         {
                             Turn++;
                             done = true;

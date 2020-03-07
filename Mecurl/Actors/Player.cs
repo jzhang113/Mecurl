@@ -1,7 +1,5 @@
 ﻿using Engine;
-using Mecurl.Parts;
 using Optional;
-using System;
 
 namespace Mecurl.Actors
 {
