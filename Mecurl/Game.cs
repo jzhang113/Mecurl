@@ -13,7 +13,6 @@ using Optional;
 using RexTools;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 using static Mecurl.Parts.RotateCharLiterals;
 
@@ -63,6 +62,7 @@ namespace Mecurl
                 [typeof(NormalState)] = _mapLayer,
                 [typeof(TargettingState)] = _mapLayer,
                 [typeof(MenuState)] = _mainLayer,
+                [typeof(IntermissionState)] = _mainLayer,
             });
 
             AnimationHandler = new AnimationHandler();
@@ -155,7 +155,7 @@ namespace Mecurl
             Terminal.Open();
             Terminal.Set(
                 $"window: size={EngineConsts.SCREEN_WIDTH + 2}x{EngineConsts.SCREEN_HEIGHT + 2}," +
-                $"cellsize=auto, title='Mecurl';");
+                $"cellsize=auto, title='Mechrl';");
             //Terminal.Set("window: fullscreen=true;");
             Terminal.Set("palette.warn = 217,163,0;");
             Terminal.Set("palette.err = 195,47,39;");
@@ -174,9 +174,8 @@ namespace Mecurl
             Run();
         }
 
-        public static void NewGame()
+        public static void NewMission()
         {
-            StateHandler.Reset();
             MessagePanel.Clear();
             AnimationHandler.Clear();
 
@@ -227,11 +226,11 @@ namespace Mecurl
             StateHandler.Draw();
             AnimationHandler.Draw(_mapLayer);
 
-            bool inGame = StateHandler.Peek().Match(
-                some: state => !(state is MenuState),
+            bool inMission = StateHandler.Peek().Match(
+                some: state => !(state is MenuState) && !(state is IntermissionState),
                 none: () => false);
 
-            if (inGame)
+            if (inMission)
             {
                 InfoPanel.Draw(_infoLayer);
                 RadarPanel.Draw(_radarLayer);

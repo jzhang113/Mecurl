@@ -77,6 +77,12 @@ namespace Mecurl.State
         // ReSharper disable once CyclomaticComplexity
         public Option<ICommand> HandleKeyInput(int key)
         {
+            if (key == Terminal.TK_ESCAPE)
+            {
+                Game.StateHandler.PopState();
+                return Option.None<ICommand>();
+            }
+
             switch (InputMapping.GetTargettingInput(key))
             {
                 case TargettingInput.None:

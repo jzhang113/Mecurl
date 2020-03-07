@@ -42,19 +42,16 @@ namespace Engine
                 return Option.None<ICommand>();
             }
 
-            if (key == Terminal.TK_ESCAPE)
-            {
-                PopState();
-                if (_states.Count == 0)
-                    BaseGame.Exit();
-
-                return Option.None<ICommand>();
-            }
-
             return currentState.HandleKeyInput(key);
         }
 
-        public void PopState() => _states.Pop();
+        public void PopState()
+        {
+            _states.Pop();
+
+            // exit if we have no more states
+            Peek().MatchNone(BaseGame.Exit);
+        }
 
         public Option<IState> Peek() =>
             (_states.Count == 0) ? Option.None<IState>() : Option.Some(_states.Peek());

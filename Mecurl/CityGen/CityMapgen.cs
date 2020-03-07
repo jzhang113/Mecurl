@@ -246,7 +246,7 @@ namespace Mecurl.CityGen
                 }
             }
 
-            return pos;
+            return new Loc(xPos, yPos);
         }
 
         protected override void PlaceItems()

@@ -20,8 +20,9 @@ namespace Mecurl.State
             switch (key)
             {
                 case Terminal.TK_ENTER:
-                    Game.NewGame();
+                    Game.StateHandler.PushState(IntermissionState.Instance);
                     return Option.None<ICommand>();
+                case Terminal.TK_ESCAPE:
                 case Terminal.TK_Q:
                     Game.Exit();
                     return Option.None<ICommand>();
