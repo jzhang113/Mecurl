@@ -28,7 +28,7 @@ namespace Engine.Map
             CreateMap();
             ComputeClearance();
 
-            PlaceStairs();
+            //PlaceStairs();
             PlaceActors();
             PlaceItems();
 

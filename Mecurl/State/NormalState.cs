@@ -38,11 +38,9 @@ namespace Mecurl.State
                 case NormalInput.StrafeRight:
                     return Option.Some<ICommand>(new MoveCommand(player, player.Pos + player.Facing.Right().Right()));
                 case NormalInput.TurnLeft:
-                    player.RotateLeft();
-                    return Option.None<ICommand>();
+                    return Option.Some<ICommand>(new TurnCommand(player, Math.PI / 2));
                 case NormalInput.TurnRight:
-                    player.RotateRight();
-                    return Option.None<ICommand>();
+                    return Option.Some<ICommand>(new TurnCommand(player, -Math.PI / 2));
                 case NormalInput.Wait:
                     return Option.Some<ICommand>(new WaitCommand(player));
                 #endregion

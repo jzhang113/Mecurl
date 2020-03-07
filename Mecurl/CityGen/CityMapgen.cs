@@ -86,8 +86,6 @@ namespace Mecurl.CityGen
 
                         var tile = Map.Field[loc];
                         tile.Color = Colors.Blend(tile.Color, colorMap[closest], 0.8);
-                        //tile.IsWall = false;
-                        tile.Symbol = '#';
                     }
 
                     for (int i = 0; i < buildingCount; i++)

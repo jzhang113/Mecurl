@@ -45,8 +45,9 @@ namespace Mecurl.UI
             Terminal.Color(Colors.BorderColor);
             layer.DrawBorders(new BorderInfo
             {
-                TopLeftChar = '╞',
-                TopRightChar = '│',
+                TopLeftChar = '├',
+                TopRightChar = '┤',
+                TopChar = '─',
                 LeftChar = '│',
                 RightChar = '│',
                 BottomChar = '─',

@@ -23,7 +23,7 @@ namespace Mecurl.Commands
             // Cancel out of bound moves.
             var bounds = Source.PartHandler.Bounds;
             var topleft = new Loc(_nextPos.X + bounds.Left, _nextPos.Y + bounds.Top);
-            var botright = new Loc(_nextPos.X + bounds.Bottom - 1, _nextPos.Y + bounds.Right - 1);
+            var botright = new Loc(_nextPos.X + bounds.Right - 1, _nextPos.Y + bounds.Bottom - 1);
 
             if (!Game.MapHandler.Field.IsValid(topleft) || !Game.MapHandler.Field.IsValid(botright))
             {
@@ -62,7 +62,7 @@ namespace Mecurl.Commands
                         {
                             continue;
                         }
-                        
+
                         int newX = x + p.Bounds.Left + _nextPos.X;
                         int newY = y + p.Bounds.Top + _nextPos.Y;
 
@@ -75,6 +75,8 @@ namespace Mecurl.Commands
 
                             return Option.None<ICommand>();
                         }
+
+                        // TODO: you can walk over other actors
                     }
                 }
             }
