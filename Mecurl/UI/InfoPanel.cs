@@ -173,7 +173,7 @@ namespace Mecurl.UI
 
                     Terminal.Layer(1);
                     Terminal.Color(color);
-                    layer.Put(x + ax, ay + y, CharTranslation.ToUnicode(tile.CharacterCode));
+                    layer.Put(x + ax, ay + y, CharUtils.ToUnicode(tile.CharacterCode));
                 }
             }
         }

@@ -60,6 +60,30 @@ namespace Mecurl.Parts
             return true;
         }
 
+        public void Remove(Part p)
+        {
+            PartList.Remove(p);
+
+            // HACK: I don't know a way to fix the bounding box without recalculating it
+            int left = 0;
+            int top = 0;
+            int right = 0;
+            int bot = 0;
+
+            foreach (Part remaining in PartList)
+            {
+                left = Math.Min(remaining.Bounds.Left, left);
+                top = Math.Min(remaining.Bounds.Top, top);
+                right = Math.Max(remaining.Bounds.Right, right);
+                bot = Math.Max(remaining.Bounds.Bottom, bot);
+            }
+
+            Bounds = Rectangle.FromLTRB(left, top, right, bot);
+
+            // update heat capacity
+            TotalHeatCapacity -= p.HeatCapacity;
+        }
+
         internal void RotateRight()
         {
             Facing = Facing.Right().Right();

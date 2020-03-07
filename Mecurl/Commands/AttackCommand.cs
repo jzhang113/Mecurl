@@ -1,4 +1,5 @@
 ﻿using Engine;
+using Engine.Map;
 using Mecurl.Actors;
 using Optional;
 using System.Collections.Generic;
@@ -52,25 +53,13 @@ namespace Mecurl.Commands
             // assign damage to terrain
             foreach (Loc loc in _targets)
             {
-                Engine.Map.Tile tile = Game.MapHandler.Field[loc];
+                Tile tile = Game.MapHandler.Field[loc];
                 if (tile.IsWall)
                 {
                     tile.IsWall = false;
 
                     // TODO: formalize tile types + add score penalty for destroying buildings
-                    double rubble = Game.VisRand.NextDouble();
-                    if (rubble < 0.3)
-                    {
-                        tile.Symbol = ';';
-                    }
-                    else if (rubble < 0.6)
-                    {
-                        tile.Symbol = ',';
-                    }
-                    else
-                    {
-                        tile.Symbol = '.';
-                    }
+                    tile.Symbol = CharUtils.GetRubbleSymbol();
                 }
             }
 

@@ -1,6 +1,7 @@
 ﻿using BearLib;
 using Engine;
 using Engine.Drawing;
+using Mecurl.Engine;
 using System;
 using System.Collections.Generic;
 
@@ -8,7 +9,7 @@ namespace Mecurl.UI
 {
     // Accepts messages from various systems and displays it in the message console. Also keeps a 
     // rolling history of messages that can be displayed.
-    public class MessagePanel
+    public class MessagePanel : IMessageHandler
     {
         private readonly int _maxSize;
         private readonly IList<string> _messages;
@@ -19,9 +20,7 @@ namespace Mecurl.UI
             _messages = new List<string>();
         }
 
-        // Place a new message onto the message log if its MessageLevel is lower than the currently
-        // set level.
-        public void AddMessage(string text)
+        public void Add(string text)
         {
             _messages.Add(text);
 
@@ -29,8 +28,7 @@ namespace Mecurl.UI
                 _messages.RemoveAt(0);
         }
 
-        // Modify the last message by adding additional text.
-        public void AppendMessage(string text)
+        public void Append(string text)
         {
             int prev = _messages.Count - 1;
             _messages[prev] += " " + text;

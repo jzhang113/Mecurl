@@ -10,7 +10,7 @@
         public const int MAP_WIDTH = 200;
         public const int MAP_HEIGHT = 200;
         public const int MAPVIEW_WIDTH = 100;
-        public const int MAPVIEW_HEIGHT = 80;
+        public const int MAPVIEW_HEIGHT = 75;
         public const int SIDEBAR_WIDTH = 20;
         public const int SIDEBAR_R_WIDTH = 15;
         public const int MESSAGE_HEIGHT = 5;

@@ -77,7 +77,9 @@ namespace Mecurl
                     new TargetZone(TargetShape.Range, 20, 2), targets =>
                     {
                         Game.StateHandler.PopState();
+                        Game.MessagePanel.Add($"{w.Name} fired");
                         wg.UpdateState(w);
+
                         var explosionAnim = Option.Some<IAnimation>(new ExplosionAnimation(targets, Colors.Fire));
                         return Option.Some<ICommand>(new AttackCommand(m, 400, 10, targets, explosionAnim));
                     }));
@@ -153,7 +155,7 @@ namespace Mecurl
             AnimationHandler.Clear();
             EventScheduler.Clear();
 
-            MessagePanel.AddMessage($"Mission Start");
+            MessagePanel.Add($"Mission Start");
 
             var mapgen = new CityMapgen(EngineConsts.MAP_WIDTH, EngineConsts.MAP_HEIGHT, 0);
             MapHandler = mapgen.Generate();
@@ -162,7 +164,7 @@ namespace Mecurl
 
         internal static void GameOver()
         {
-            MessagePanel.AddMessage("System shutting down. Press [[enter]] to continue");
+            MessagePanel.Add("System shutting down. Press [[enter]] to continue");
             Game.StateHandler.PushState(GameOverState.Instance);
         }
 

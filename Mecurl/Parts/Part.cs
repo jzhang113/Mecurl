@@ -170,7 +170,6 @@ namespace Mecurl.Parts
 
         internal void Draw(LayerInfo layer, Loc pos)
         {
-
             if (Facing == Direction.N || Facing == Direction.S)
             {
                 for (int i = 0; i < Structure.Length; i++)

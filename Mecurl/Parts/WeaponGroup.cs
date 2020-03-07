@@ -1,6 +1,7 @@
 ﻿using Engine;
 using Mecurl.Actors;
 using Optional;
+using System;
 using System.Collections.Generic;
 
 namespace Mecurl.Parts
@@ -48,6 +49,11 @@ namespace Mecurl.Parts
             Groups[group].Add(w);
         }
 
+        public void Remove(Weapon w)
+        {
+            Groups[w.PrevGroup].Remove(w);
+        }
+
         public void Reassign(Weapon w, int newGroup)
         {
             Groups[w.PrevGroup].Remove(w);
@@ -58,9 +64,11 @@ namespace Mecurl.Parts
         // handling state stuff that needs to happen after the weapon has been fired
         internal void UpdateState(Weapon weapon)
         {
-            _parent.CurrentHeat += weapon.HeatGenerated;
-            weapon.CurrentCooldown = weapon.Cooldown;
+            // update heat
+            _parent.UpdateHeat(weapon.HeatGenerated);
 
+            // update cooldown
+            weapon.CurrentCooldown = weapon.Cooldown;
             List<Weapon> group = Groups[weapon.PrevGroup];
             int minCooldown = weapon.CurrentCooldown;
             int currIndex = _nextWeapon[weapon.PrevGroup];
