@@ -99,7 +99,7 @@ namespace Mecurl.Actors
                         if (p.Stability <= 0)
                         {
                             removeList.Add(p);
-                            _messages.Add($"{p.Name} is destroyed");
+                            _messages.Add($"[color=err]Warning[/color]: {p.Name} destroyed");
                         }
                         break;
                     }
@@ -169,11 +169,11 @@ namespace Mecurl.Actors
 
                 if (prevHeat < criticalThresh && newHeat >= criticalThresh)
                 {
-                    _messages.Add("Warning: Heat level critical");
+                    _messages.Add("[color=err]Warning[/color]: Heat level critical");
                 }
                 else if (prevHeat < warnThresh && newHeat >= warnThresh)
                 {
-                    _messages.Add("Warning: Heat level high");
+                    _messages.Add("[color=warn]Alert[/color]: Heat level high");
                 }
 
                 CurrentHeat = newHeat;

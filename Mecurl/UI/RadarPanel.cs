@@ -26,14 +26,14 @@ namespace Mecurl.UI
             const int scale = 5;
             int radius = layer.Width / 2 + 1;
 
-            for (int x = -radius; x <= radius; x++)
+            for (int rx = -radius; rx <= radius; rx++)
             {
-                for (int y = -radius; y <= radius; y++)
+                for (int ry = -radius; ry <= radius; ry++)
                 {
-                    if (x * x + y * y >= radius * radius) continue;
+                    if (rx * rx + ry * ry >= radius * radius) continue;
 
-                    int topLeftX = midPos.X + x * scale;
-                    int topLeftY = midPos.Y + y * scale;
+                    int topLeftX = midPos.X + rx * scale;
+                    int topLeftY = midPos.Y + ry * scale;
                     char symbol = '#';
                     var color = Colors.Text;
 
@@ -65,9 +65,14 @@ namespace Mecurl.UI
                     }
 
                     Terminal.Color(color);
-                    layer.Put(x + radius - 1, y + radius - 1, symbol);
+                    layer.Put(rx + radius - 1, ry + radius - 1, symbol);
                 }
             }
+
+            int y = layer.Width;
+
+            Terminal.Color(Colors.BorderColor);
+            layer.Print(y, "─────────────────");
         }
     }
 }

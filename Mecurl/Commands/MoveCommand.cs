@@ -65,15 +65,22 @@ namespace Mecurl.Commands
 
                         int newX = x + p.Bounds.Left + _nextPos.X;
                         int newY = y + p.Bounds.Top + _nextPos.Y;
+                        var tile = Game.MapHandler.Field[newX, newY];
 
-                        if (Game.MapHandler.Field[newX, newY].IsWall)
+                        if (tile.IsWall)
                         {
-                            // Don't penalize the player for walking into walls, but monsters should wait if 
-                            // they will walk into a wall.
-                            if (Source == Game.Player)
+                            // Enemies naturally have WallWalk
+                            if (Source == Game.Player && !Game.WallWalk)
+                            {
+                                // confirm walking through walls
+                                Game.MessagePanel.Add("[color=warn]Alert[/color]: About to walk through wall");
                                 Game.PrevCancelled = true;
+                                Game.WallWalk = true;
+                                return Option.None<ICommand>();
+                            }
 
-                            return Option.None<ICommand>();
+                            tile.IsWall = false;
+                            tile.Symbol = CharUtils.GetRubbleSymbol();
                         }
 
                         // TODO: you can walk over other actors

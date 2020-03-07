@@ -20,6 +20,7 @@ namespace Engine
 
         // HACK: how to communicate cancelled moved to the main loop?
         internal static bool PrevCancelled = false;
+        internal static bool WallWalk = false;
         private static bool _exiting;
 
         static BaseGame()

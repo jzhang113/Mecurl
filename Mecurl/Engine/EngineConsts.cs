@@ -4,7 +4,7 @@
     {
         // FOV and lighting stuff
         public const float MIN_VISIBLE_LIGHT_LEVEL = 0.01f;
-        public const double LIGHT_DECAY = 0.1;
+        public const double LIGHT_DECAY = 0.06;
 
         // UI constants
         public const int MAP_WIDTH = 200;

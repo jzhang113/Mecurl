@@ -16,7 +16,7 @@ namespace Mecurl.UI
             layer.DrawBorders(new BorderInfo
             {
                 TopLeftChar = '├',
-                TopRightChar = '┐',
+                TopRightChar = '┤',
                 BottomLeftChar = '┴',
                 BottomRightChar = '┘',
                 TopChar = '─', // 196
@@ -24,8 +24,10 @@ namespace Mecurl.UI
                 RightChar = '│' // 179
             });
 
+            Terminal.Color(Colors.Text);
             layer.Print(0, "Objective");
-            layer.Print(1, "──────────");
+            layer.Print(1, "─────────");
+            layer.Print(2, " none");
         }
     }
 }

@@ -70,7 +70,7 @@ namespace Engine
         {
             int h = BaseGame.VisRand.Next(360);
             double s = BaseGame.VisRand.NextDouble() * 0.4 + 0.5;
-            double l = BaseGame.VisRand.NextDouble() * 0.25 + 0.2;
+            double l = BaseGame.VisRand.NextDouble() * 0.25 + 0.4;
             return FromHSL(h, s, l);
         }
     }

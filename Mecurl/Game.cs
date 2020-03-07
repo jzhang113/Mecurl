@@ -40,7 +40,8 @@ namespace Mecurl
 
             _radarLayer = new LayerInfo("Radar", 1,
                 EngineConsts.SIDEBAR_WIDTH + EngineConsts.MAPVIEW_WIDTH + 3, 1,
-                EngineConsts.SIDEBAR_R_WIDTH, EngineConsts.SIDEBAR_R_WIDTH);
+                EngineConsts.SIDEBAR_R_WIDTH,
+                EngineConsts.SCREEN_HEIGHT - EngineConsts.SIDEBAR_R_WIDTH - 1);
 
             _objectiveLayer = new LayerInfo("Objective", 1,
                 EngineConsts.SIDEBAR_WIDTH + EngineConsts.MAPVIEW_WIDTH + 3,
@@ -121,8 +122,10 @@ namespace Mecurl
             Terminal.Open();
             Terminal.Set(
                 $"window: size={EngineConsts.SCREEN_WIDTH + 2}x{EngineConsts.SCREEN_HEIGHT + 2}," +
-                $"cellsize=auto, title='GeomanceRL';");
+                $"cellsize=auto, title='Mecurl';");
             //Terminal.Set("window: fullscreen=true;");
+            Terminal.Set("palette.warn = 217,163,0;");
+            Terminal.Set("palette.err = 195,47,39;");
             Terminal.Set("font: square.ttf, size = 12x12;");
             Terminal.Set("text font: square.ttf, size = 12x12;");
             Terminal.Set("0xE000: FontTiles/arn.png, size = 12x12, transparent=black");
@@ -177,6 +180,8 @@ namespace Mecurl
             {
                 player.TriggerDeath();
             }
+
+            WallWalk = false;
         }
 
         public override void Render()

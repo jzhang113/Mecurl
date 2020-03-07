@@ -44,6 +44,7 @@ namespace Mecurl.Commands
 
             if (!Game.MapHandler.Field.IsValid(topleft) || !Game.MapHandler.Field.IsValid(botright))
             {
+                Game.MessagePanel.Add("[color=warn]Alert[/color]: No space to turn");
                 Game.PrevCancelled = true;
                 return Option.None<ICommand>();
             }
