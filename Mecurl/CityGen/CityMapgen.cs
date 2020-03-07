@@ -199,12 +199,11 @@ namespace Mecurl.CityGen
 
         protected override void PlaceActors()
         {
-            for (int i = 0; i < 10; i++)
+            for (int i = 0; i < 3; i++)
             {
-                var core = new Parts.Part(1, 1, new Loc(0, 0), Direction.N, new Parts.RotateChar[] { new Parts.RotateChar('x') }, 10);
-
-                Actors.Mech m = new Actors.Mech(Map.GetRandomOpenPoint(), 100, 'x', Color.Red);
+                Actors.Mech m = new Actors.Mech(new Loc(1,1), 100, 'x', Color.Red);
                 Game.BuildMech(m, Game.AiFireMethod);
+                m.Pos = ForcePlaceActor(m.PartHandler.Bounds);
 
                 Map.AddActor(m);
             }
@@ -222,27 +221,32 @@ namespace Mecurl.CityGen
                 },
                 none: () =>
                 {
-                    // if we can't find a place to drop the player, just pick a random spot and
-                    // destroy any offending building tiles
-                    Loc pos = Map.GetRandomOpenPoint();
-
-                    // since GetRandomOpenPoint doesn't respect clearance, we clamp the coordinates
-                    // to avoid part of the mech being out of bounds
-                    int xPos = Math.Clamp(playerBounds.Width, pos.X, Width - playerBounds.Width);
-                    int yPos = Math.Clamp(playerBounds.Height, pos.Y, Height - playerBounds.Height);
-
-                    Game.Player.Pos = pos;
-
-                    for (int x = playerBounds.Left; x < playerBounds.Right; x++)
-                    {
-                        for (int y = playerBounds.Top; y < playerBounds.Bottom; y++)
-                        {
-                            Map.Field[x + xPos, y + yPos].IsWall = false;
-                        }
-                    }
+                    Game.Player.Pos = ForcePlaceActor(playerBounds);
                 });
 
             Map.AddActor(Game.Player);
+        }
+
+        private Loc ForcePlaceActor(Rectangle playerBounds)
+        {
+            // if we can't find a place to drop the player, just pick a random spot and
+            // destroy any offending building tiles
+            Loc pos = Map.GetRandomOpenPoint();
+
+            // since GetRandomOpenPoint doesn't respect clearance, we clamp the coordinates
+            // to avoid part of the mech being out of bounds
+            int xPos = Math.Clamp(pos.X, playerBounds.Width, Width - playerBounds.Width);
+            int yPos = Math.Clamp(pos.Y, playerBounds.Height, Height - playerBounds.Height);
+            
+            for (int x = playerBounds.Left; x < playerBounds.Right; x++)
+            {
+                for (int y = playerBounds.Top; y < playerBounds.Bottom; y++)
+                {
+                    Map.Field[x + xPos, y + yPos].IsWall = false;
+                }
+            }
+
+            return pos;
         }
 
         protected override void PlaceItems()

@@ -10,10 +10,10 @@ namespace Engine
     // Helper methods for calculating distances
     public static class Distance
     {
-        public static Direction GetNearestDirection(in Loc a, in Loc b)
+        public static Direction GetNearestDirection(in Loc to, in Loc from)
         {
-            int dx = a.X - b.X;
-            int dy = a.Y - b.Y;
+            int dx = to.X - from.X;
+            int dy = to.Y - from.Y;
             int ax = Math.Abs(dx);
             int ay = Math.Abs(dy);
             bool straight = Math.Abs(ax - ay) > Math.Max(ax / 2, ay / 2);

@@ -37,22 +37,21 @@ namespace Mecurl.State
 
         public void Draw(LayerInfo layer)
         {
-            Terminal.Clear();
-            layer.Print(2, "GeomanceRL");
+            int x = 2;
 
+            Terminal.Clear();
+            layer.Print(x, 2, "MechRL");
             int y = 4;
-            layer.Print(y++, "Several days ago, you sensed a disturbance somewhere");
-            layer.Print(y++, "in the distance. With your trusty staff and spellbook");
-            layer.Print(y++, "in hand, you set out to investigate.");
 
             y++;
-            layer.Print(y++, "Controls:");
-            layer.Print(y++, "Vi-keys, arrow keys, or number pad to move");
-            layer.Print(y++, "1-6 to cast known spells");
-            layer.Print(y++, "While casting, press [[Enter]] to confirm or [[Esc]] to cancer");
-            layer.Print(y++, "[[Esc]] to quit to this menu");
+            layer.Print(x, y++, "Controls:");
+            layer.Print(x, y++, "Arrow keys, or number pad to move");
+            layer.Print(x, y++, "Shift-left or Shift-right to turn");
+            layer.Print(x, y++, "1-6 to fire weapons");
+            layer.Print(x, y++, "While casting, press [[Enter]] to confirm or [[Esc]] to cancer");
+            layer.Print(x, y++, "[[Esc]] to quit to this menu");
 
-            layer.Print(++y, "Press [[Enter]] to start");
+            layer.Print(x, ++y, "Press [[Enter]] to start");
         }
     }
 }

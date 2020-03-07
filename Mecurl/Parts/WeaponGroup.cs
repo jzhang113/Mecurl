@@ -24,7 +24,7 @@ namespace Mecurl.Parts
             }
         }
 
-        public Option<ICommand> FireGroup(int group)
+        public Option<ICommand> FireGroup(Mech mech, int group)
         {
             var weaponIndex = NextIndex(group);
             if (weaponIndex >= 0)
@@ -33,12 +33,23 @@ namespace Mecurl.Parts
 
                 if (weapon.CurrentCooldown > 0) return Option.None<ICommand>();
 
-                weapon.Activate(weapon);
+                return weapon.Activate(mech, weapon);
             }
 
-            // HACK: Activate always returns None, so this is fine for now
-            // that said, I don't know if Activate even needs to be able to return alternatives
             return Option.None<ICommand>();
+        }
+
+        public bool CanFireGroup(int group)
+        {
+            var weaponIndex = NextIndex(group);
+            if (weaponIndex >= 0)
+            {
+                var weapon = Groups[group][weaponIndex];
+
+                return weapon.CurrentCooldown <= 0;
+            }
+
+            return false;
         }
 
         public void Add(Weapon w, int group)

@@ -13,6 +13,7 @@ using Optional;
 using RexTools;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 using static Mecurl.Parts.RotateCharLiterals;
 
@@ -75,7 +76,7 @@ namespace Mecurl
             EventScheduler = new EventScheduler(typeof(Player), AnimationHandler);
         }
 
-        internal static void BuildMech(Mech mech, Func<Weapon, Option<ICommand>> fire)
+        internal static void BuildMech(Mech mech, Func<Mech, Weapon, Option<ICommand>> fire)
         {
             Direction initialFacing = Direction.N;
             var core =
@@ -111,14 +112,27 @@ namespace Mecurl
             mech.PartHandler.WeaponGroup.Add(w2, 0);
         }
 
-        internal static Option<ICommand> AiFireMethod(Weapon w)
+        internal static Option<ICommand> AiFireMethod(Mech m, Weapon w)
         {
+            var tz = new TargetZone(TargetShape.Range, 20, 2);
+
+            foreach (var loc in tz.GetAllValidTargets(m.Pos, m.Facing, Measure.Euclidean, true))
+            {
+                if (loc == Player.Pos)
+                {
+                    m.UpdateHeat(w.HeatGenerated);
+                    m.PartHandler.WeaponGroup.UpdateState(w);
+                    var targets = tz.GetTilesInRange(m.Pos, loc, Measure.Euclidean);
+                    var explosionAnim = Option.Some<IAnimation>(new ExplosionAnimation(targets, Colors.Fire));
+                    return Option.Some<ICommand>(new AttackCommand(m, 400, 10, targets, explosionAnim));
+                }
+            }
+            
             return Option.None<ICommand>();
         }
 
-        private static Option<ICommand> PlayerFireMethod(Weapon w)
+        private static Option<ICommand> PlayerFireMethod(Mech m, Weapon w)
         {
-            var m = (Mech)Game.Player;
             WeaponGroup wg = m.PartHandler.WeaponGroup;
 
             Game.StateHandler.PushState(new TargettingState(Game.MapHandler, m, Measure.Euclidean,

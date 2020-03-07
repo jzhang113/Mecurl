@@ -47,17 +47,17 @@ namespace Mecurl.State
 
                 #region Weapon Group Firing;
                 case NormalInput.WeaponGroup1:
-                    return player.PartHandler.WeaponGroup.FireGroup(0);
+                    return player.PartHandler.WeaponGroup.FireGroup(player, 0);
                 case NormalInput.WeaponGroup2:
-                    return player.PartHandler.WeaponGroup.FireGroup(1);
+                    return player.PartHandler.WeaponGroup.FireGroup(player, 1);
                 case NormalInput.WeaponGroup3:
-                    return player.PartHandler.WeaponGroup.FireGroup(2);
+                    return player.PartHandler.WeaponGroup.FireGroup(player, 2);
                 case NormalInput.WeaponGroup4:
-                    return player.PartHandler.WeaponGroup.FireGroup(3);
+                    return player.PartHandler.WeaponGroup.FireGroup(player, 3);
                 case NormalInput.WeaponGroup5:
-                    return player.PartHandler.WeaponGroup.FireGroup(4);
+                    return player.PartHandler.WeaponGroup.FireGroup(player, 4);
                 case NormalInput.WeaponGroup6:
-                    return player.PartHandler.WeaponGroup.FireGroup(5);
+                    return player.PartHandler.WeaponGroup.FireGroup(player, 5);
                 #endregion
             }
 
