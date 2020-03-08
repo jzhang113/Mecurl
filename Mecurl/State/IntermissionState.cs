@@ -23,13 +23,14 @@ namespace Mecurl.State
         private bool _buildScreen = false;
 
         private int _selectedIndex = -1;
-        private List<PartHandler> _hangar = new List<PartHandler>();
+        private readonly List<PartHandler> _hangar = new List<PartHandler>();
         private Part _selectedPart;
         private int _cursorX = 0;
         private int _cursorY = 0;
         private (int, int) _prevCursor = (0, 0);
         private string _message;
         private BuildState _bs = BuildState.None;
+        private int _addSelection = 0;
 
         private const int _buildCenterX = 70;
         private const int _buildCenterY = 40;
@@ -110,7 +111,7 @@ namespace Mecurl.State
                     _bBase.Press();
                     break;
                 case Terminal.TK_B:
-                    Game.Blueprint = (_selectedIndex == -1) ? _hangar[_selectedIndex] : _hangar[0];
+                    Game.Blueprint = (_selectedIndex == -1) ? _hangar[0] : _hangar[_selectedIndex];
                     Game.Blueprint.ValidateAndFix();
                     _bBegin.Press();
                     break;
@@ -121,38 +122,123 @@ namespace Mecurl.State
                 int delta = Terminal.Check(Terminal.TK_SHIFT) ? 5 : 1;
                 _message = "";
 
+                if (_bs == BuildState.RepairConfirm)
+                {
+                    if (key == Terminal.TK_Y || key == Terminal.TK_ENTER)
+                    {
+                        double repairAmt = _selectedPart.MaxStability - _selectedPart.Stability;
+                        double cost = Math.Min(Game.Scrap, EngineConsts.REPAIR_COST * repairAmt);
+
+                        if (Game.Scrap >= cost)
+                        {
+                            Game.Scrap -= cost;
+                            _selectedPart.Stability = _selectedPart.MaxStability;
+                        }
+                        else
+                        {
+                            double actualRepaired = cost / EngineConsts.REPAIR_COST;
+                            _selectedPart.Stability += actualRepaired;
+                            Game.Scrap = 0;
+                        }
+
+                        _message = $"{_selectedPart.Name} repaired";
+                    }
+                    else
+                    {
+                        _message = "Nevermind";
+                    }
+
+                    _bs = BuildState.None;
+                }
+
+                if (_bs == BuildState.AssignGroupConfirm)
+                {
+                    int num = key - Terminal.TK_1;
+                    if (num >= 0 && num <= 5)
+                    {
+                        _hangar[_selectedIndex].WeaponGroup.Reassign((Weapon)_selectedPart, num);
+                        _message = $"{_selectedPart.Name} assigned to weapon group {num + 1}";
+                    }
+                    else
+                    {
+                        _message = "Nevermind";
+                    }
+
+                    _bs = BuildState.None;
+                }
+
                 switch (key)
                 {
                     case Terminal.TK_A:
                         if (_selectedIndex == -1) break;
-                        _bs = BuildState.Add;
+                        _bs = BuildState.AddSelect;
+                        _selectedPart = Game.AvailParts[_addSelection];
                         break;
                     case Terminal.TK_R:
                         if (_selectedIndex == -1) break;
                         _bs = BuildState.Remove;
+                        GetCursorIntersect();
                         break;
                     case Terminal.TK_M:
                         if (_selectedIndex == -1) break;
                         _bs = BuildState.Move;
+                        GetCursorIntersect();
                         break;
                     case Terminal.TK_O:
                         if (_selectedIndex == -1) break;
                         _bs = BuildState.Rotate;
+                        GetCursorIntersect();
+                        break;
+                    case Terminal.TK_E:
+                        if (_selectedIndex == -1) break;
+                        _bs = BuildState.Repair;
+                        GetCursorIntersect();
+                        break;
+                    case Terminal.TK_G:
+                        if (_selectedIndex == -1) break;
+                        _bs = BuildState.AssignGroup;
+                        GetCursorIntersect();
                         break;
                     case Terminal.TK_ESCAPE:
                         _bs = BuildState.None;
                         break;
                     case Terminal.TK_UP:
-                        _cursorY = Math.Max(_cursorY - delta, -28);
+                        if (_bs == BuildState.AddSelect)
+                        {
+                            _addSelection = Math.Max(_addSelection - 1, 0);
+                            _selectedPart = Game.AvailParts[_addSelection];
+                        }
+                        else if (_bs != BuildState.None)
+                        {
+                            _cursorY = Math.Max(_cursorY - delta, -28);
+                            if (_bs != BuildState.Add && _bs != BuildState.Drop) GetCursorIntersect();
+                        }
                         break;
                     case Terminal.TK_DOWN:
-                        _cursorY = Math.Min(_cursorY + delta, 28);
+                        if (_bs == BuildState.AddSelect)
+                        {
+                            _addSelection = Math.Min(_addSelection + 1, Game.AvailParts.Count - 1);
+                            _selectedPart = Game.AvailParts[_addSelection];
+                        }
+                        else if (_bs != BuildState.None)
+                        {
+                            _cursorY = Math.Min(_cursorY + delta, 28);
+                            if (_bs != BuildState.Add && _bs != BuildState.Drop) GetCursorIntersect();
+                        }
                         break;
                     case Terminal.TK_LEFT:
-                        _cursorX = Math.Max(_cursorX - delta, -39);
+                        if (_bs != BuildState.None)
+                        {
+                            _cursorX = Math.Max(_cursorX - delta, -39);
+                            if (_bs != BuildState.Add && _bs != BuildState.Drop) GetCursorIntersect();
+                        }
                         break;
                     case Terminal.TK_RIGHT:
-                        _cursorX = Math.Min(_cursorX + delta, 38);
+                        if (_bs != BuildState.None)
+                        {
+                            _cursorX = Math.Min(_cursorX + delta, 38);
+                            if (_bs != BuildState.Add && _bs != BuildState.Drop) GetCursorIntersect();
+                        }
                         break;
                     case Terminal.TK_1:
                     case Terminal.TK_2:
@@ -189,7 +275,16 @@ namespace Mecurl.State
             {
                 case BuildState.None:
                     return;
+                case BuildState.AddSelect:
+                    _selectedPart = Game.AvailParts[_addSelection];
+                    _bs = BuildState.Add;
+                    return;
                 case BuildState.Add:
+                    _selectedPart.Center = new Loc(_cursorX, _cursorY);
+                    _selectedPart.UpdateBounds();
+                    partHandler.Add(_selectedPart);
+                    _bs = BuildState.None;
+                    partHandler.Validate();
                     return;
                 case BuildState.Remove:
                     GetCursorIntersect().MatchSome(part =>
@@ -198,7 +293,7 @@ namespace Mecurl.State
                             _message = "Cannot remove core";
                         else
                             partHandler.Remove(part);
-                    });                    
+                    });
                     return;
                 case BuildState.Move:
                     GetCursorIntersect().MatchSome(part =>
@@ -207,7 +302,6 @@ namespace Mecurl.State
                             _message = "Cannot move core";
                         else
                         {
-                            _selectedPart = part;
                             _prevCursor = (_cursorX, _cursorY);
                             _bs = BuildState.Drop;
                         }
@@ -233,15 +327,50 @@ namespace Mecurl.State
                         }
                     });
                     return;
+                case BuildState.Repair:
+                    GetCursorIntersect().MatchSome(part =>
+                    {
+                        double repairAmt = part.MaxStability - part.Stability;
+                        if (repairAmt == 0)
+                        {
+                            _message = $"{part.Name} doesn't need repairs";
+                        }
+                        else
+                        {
+                            double cost = Math.Min(Game.Scrap, EngineConsts.REPAIR_COST * repairAmt);
+                            _message = $"Spend {cost} to repair {part.Name}?";
+                            _bs = BuildState.RepairConfirm;
+                        }
+                    });
+                    return;
+                case BuildState.AssignGroup:
+                    GetCursorIntersect().MatchSome(part =>
+                    {
+                        if (part is Weapon w)
+                        {
+                            _message = $"Assign {part.Name} to which weapon group";
+                            _bs = BuildState.AssignGroupConfirm;
+                        }
+                        else
+                        {
+                            _message = $"{part.Name} can't be assigned to a weapon group";
+                        }
+                    });
+                    return;
             }
         }
 
         private Option<Part> GetCursorIntersect()
         {
+            _selectedPart = null;
+
             foreach (Part part in _hangar[_selectedIndex])
             {
                 if (part.Bounds.Contains(_cursorX, _cursorY))
+                {
+                    _selectedPart = part;
                     return Option.Some(part);
+                }
             }
 
             return Option.None<Part>();
@@ -313,22 +442,55 @@ namespace Mecurl.State
             layer.Print(new Rectangle(0, 1, infoBorderX - 1, 1), "Info", ContentAlignment.TopCenter);
             layer.Print(new Rectangle(0, 2, infoBorderX - 1, 2), "────", ContentAlignment.TopCenter);
 
+            if (_bs != BuildState.None && _selectedPart != null)
+            {
+                layer.Print(1, 4, "General Data");
+                layer.Print(2, 6, $"{_selectedPart.Name}");
+                layer.Print(2, 7, $"Stability: {_selectedPart.Stability} / {_selectedPart.MaxStability} ");
+                layer.Print(2, 8, $"Speed: {-_selectedPart.SpeedDelta} ");
+                layer.Print(2, 9, $"Heat Capacity: {_selectedPart.HeatCapacity} ");
+                layer.Print(2, 10, $"Heat Generated: {_selectedPart.HeatGenerated} ");
+                layer.Print(2, 11, $"Heat Removed: {_selectedPart.HeatRemoved} ");
+
+                if (_selectedPart is Weapon w)
+                {
+                    layer.Print(1, 13, "Weapon Data");
+                    layer.Print(2, 15, $"Range: {w.Target.Range}");
+                    layer.Print(2, 16, $"Radius: {w.Target.Radius}");
+                    layer.Print(2, 17, $"Shape: {w.Target.Shape}");
+                    layer.Print(2, 18, $"Weapon Group: {w.Group + 1}");
+                }
+            }
+
+            layer.Print(1, buttonBorderY - 1, $"Scrap: {Game.Scrap}");
+
             // part window
-            layer.Print(new Rectangle(partBorderX, 1, 29, 1), "Avaiable Parts", ContentAlignment.TopCenter);
+            layer.Print(new Rectangle(partBorderX, 1, 29, 1), "Available Parts", ContentAlignment.TopCenter);
             layer.Print(new Rectangle(partBorderX, 2, 29, 2), "──────────────", ContentAlignment.TopCenter);
 
-            int partPanelHeight = layer.Height - _bHeight - 1;
+            int partPanelHeight = layer.Height - _bHeight - 6;
             int partCount = Game.AvailParts.Count;
-            const int dispParts = 10;
+            int partsYPos = 3;
 
-            for (int i = 0; i < Math.Min(dispParts, partCount); i++)
+            for (int i = 0; i < partCount; i++)
             {
-                double dispHeight = (double)partPanelHeight / dispParts;
-                int yPos = 1 + (int)(i * dispHeight);
-
                 var part = Game.AvailParts[i];
-                part.Draw(layer, new Loc(partBorderX + 1, yPos));
-                layer.Put(1, coreBorderY - 1, '0' + i);
+                if (partsYPos + part.Height > partPanelHeight) break;
+
+                Terminal.Color(Game.Player.Color);
+                for (int x = 0; x < part.Bounds.Width; x++)
+                {
+                    for (int y = 0; y < part.Bounds.Height; y++)
+                    {
+                        int boundsIndex = part.BoundingIndex(x, y);
+                        char c = part.GetPiece(boundsIndex);
+                        layer.Put(partBorderX + 1 + x, partsYPos + y, c);
+                    }
+                }
+
+                Terminal.Color(_bs == BuildState.AddSelect && _addSelection == i ? Colors.HighlightColor : Colors.Text);
+                layer.Print(layer.Width - part.Name.Length - 1, partsYPos, part.Name);
+                partsYPos += part.Height + 1;
             }
 
             // build window
@@ -338,7 +500,7 @@ namespace Mecurl.State
 
                 ph.Draw(layer, new Loc(_buildCenterX, _buildCenterY), Colors.Player);
 
-                Terminal.Color(_bs == BuildState.Add ? Colors.HighlightColor : Colors.Text);
+                Terminal.Color(_bs == BuildState.AddSelect || _bs == BuildState.Add ? Colors.HighlightColor : Colors.Text);
                 layer.Print(infoBorderX + 1, buttonBorderY - 1, "(A)dd");
                 Terminal.Color(_bs == BuildState.Remove ? Colors.HighlightColor : Colors.Text);
                 layer.Print(infoBorderX + 11, buttonBorderY - 1, "(R)emove");
@@ -346,6 +508,10 @@ namespace Mecurl.State
                 layer.Print(infoBorderX + 24, buttonBorderY - 1, "(M)ove");
                 Terminal.Color(_bs == BuildState.Rotate ? Colors.HighlightColor : Colors.Text);
                 layer.Print(infoBorderX + 35, buttonBorderY - 1, "R(o)tate");
+                Terminal.Color(_bs == BuildState.Repair ? Colors.HighlightColor : Colors.Text);
+                layer.Print(infoBorderX + 48, buttonBorderY - 1, "R(e)pair");
+                Terminal.Color(_bs == BuildState.AssignGroup ? Colors.HighlightColor : Colors.Text);
+                layer.Print(infoBorderX + 61, buttonBorderY - 1, "Assign(G)roup");
             }
             else
             {
@@ -354,7 +520,7 @@ namespace Mecurl.State
             }
 
             // cursor
-            if (_bs != BuildState.None)
+            if (_bs != BuildState.None && _bs != BuildState.AddSelect)
             {
                 if (_bs == BuildState.Drop)
                 {
@@ -448,7 +614,8 @@ namespace Mecurl.State
 
         private enum BuildState
         {
-            None, Add, Remove, Move, Drop, Rotate
+            None, AddSelect, Add, Remove, Move, Drop, Rotate, Repair, RepairConfirm,
+            AssignGroup, AssignGroupConfirm
         }
     }
 }

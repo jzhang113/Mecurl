@@ -226,6 +226,8 @@ namespace Mecurl.Parts
             {
                 Remove(part);
             }
+
+            Bounds = CalculateBounds(0, 0, 0, 0);
         }
 
         private void ExpandRectPoints(Part part, Queue<Loc> queue, List<Loc> seen)

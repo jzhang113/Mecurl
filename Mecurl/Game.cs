@@ -28,7 +28,8 @@ namespace Mecurl
         internal static PartHandler Blueprint { get; set; }
         internal static List<Core> AvailCores { get; private set; }
         internal static List<Part> AvailParts { get; private set; }
-
+        internal static double Scrap { get; set; } = 1000;
+        
         public Game() : base()
         {
             _mapLayer = new LayerInfo("Map", 1,

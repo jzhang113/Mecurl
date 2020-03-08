@@ -32,5 +32,7 @@
         internal static double COOL_POWER = 1;
         internal static double COOL_USE_AMT = 10;
         internal static int COOL_USE_TICKS = 120;
+
+        public static double REPAIR_COST = 5;
     }
 }
