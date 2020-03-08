@@ -12,9 +12,6 @@ namespace Mecurl.State
 {
     public class IntermissionState : IState
     {
-        private static readonly Lazy<IntermissionState> _instance = new Lazy<IntermissionState>(() => new IntermissionState());
-        public static IntermissionState Instance => _instance.Value;
-
         private const int _bHeight = 7;
         private readonly Button _bAbandon;
         private readonly Button _bLoadout;
@@ -38,7 +35,7 @@ namespace Mecurl.State
         private static double[,] _perlinMap;
         private static double[,] _perlinMap2;
 
-        private IntermissionState()
+        public IntermissionState()
         {
             var _gen = new Perlin();
             _perlinMap = new double[95, 67];
@@ -52,7 +49,6 @@ namespace Mecurl.State
                 }
             }
 
-
             Core core = Game.AvailCores[0];
             var w1 = Game.AvailParts[0];
             var w2 = Game.AvailParts[1];
@@ -62,8 +58,10 @@ namespace Mecurl.State
                 Core = core
             };
             ph.Add(core);
-            ph.Add(w1);
-            ph.Add(w2);
+            for (int i = 0; i < Game.AvailParts.Count; i++)
+            {
+                ph.Add(Game.AvailParts[i]);
+            }
             ph.WeaponGroup.Add((Weapon)w1, 0);
             ph.WeaponGroup.Add((Weapon)w2, 0);
 
@@ -299,6 +297,10 @@ namespace Mecurl.State
                     _selectedPart.Center = new Loc(_cursorX, _cursorY);
                     _selectedPart.UpdateBounds();
                     partHandler.Add(_selectedPart);
+                    if (_selectedPart is Weapon w)
+                    {
+                        partHandler.WeaponGroup.Add(w, 0);
+                    }
                     _bs = BuildState.None;
                     partHandler.Validate();
                     return;
@@ -532,7 +534,7 @@ namespace Mecurl.State
                         {
                             int boundsIndex = part.BoundingIndex(x, y);
                             char c = part.GetPiece(boundsIndex);
-                            layer.Put(_buildCenterX + part.Center.X + x - 1, _buildCenterY + part.Center.Y + y - 1, c);
+                            layer.Put(_buildCenterX + part.Bounds.Left + x, _buildCenterY + part.Bounds.Top + y, c);
                         }
                     }
                 }
@@ -633,7 +635,7 @@ namespace Mecurl.State
             {
                 for (int j = 0; j < 67; j++)
                 {
-                    if (_perlinMap[i,j] < 0.37)
+                    if (_perlinMap[i, j] < 0.37)
                     {
                         Terminal.Color(Color.Blue);
                     }
@@ -643,7 +645,7 @@ namespace Mecurl.State
                     }
 
                     char c;
-                    if (_perlinMap2[i,j] < 0.35)
+                    if (_perlinMap2[i, j] < 0.35)
                     {
                         c = ' ';
                     }
@@ -675,7 +677,14 @@ namespace Mecurl.State
             Terminal.Color(Colors.Text);
             layer.Print(briefingBorderX + 1, 1, "Mission summary");
             layer.Print(briefingBorderX + 1, 2, "───────────────");
-            layer.Print(new Rectangle(briefingBorderX + 2, 3, 39, 28), "Hostile forces have been detected in the region", ContentAlignment.TopLeft);
+
+            string briefingString;
+            if (Game.Difficulty >= 5)
+                briefingString = "The region is peaceful. Congratulations, you have won.";
+            else
+                briefingString = "Hostile forces have been detected in the region";
+
+            layer.Print(new Rectangle(briefingBorderX + 2, 3, 39, 28), briefingString, ContentAlignment.TopLeft);
 
 
             layer.Print(briefingBorderX + 1, 30, "Objectives");
@@ -686,17 +695,26 @@ namespace Mecurl.State
                 MissionType.Elim => "Eliminate all enemies",
                 _ => "None",
             };
+            if (Game.Difficulty >= 5)
+                objectiveString = "None";
             layer.Print(briefingBorderX + 2, 32, objectiveString);
 
             layer.Print(briefingBorderX + 1, 60, "Reward");
             layer.Print(briefingBorderX + 1, 61, "──────");
 
-            int y = 62;
-            if (Game.NextMission.RewardPart != null)
-                layer.Print(briefingBorderX + 2, y++, $"{Game.NextMission.RewardPart.Name}");
+            if (Game.Difficulty >= 5)
+            {
+                layer.Print(briefingBorderX + 2, 62, $"None");
+            }
+            else
+            {
+                int y = 62;
+                if (Game.NextMission.RewardPart != null)
+                    layer.Print(briefingBorderX + 2, y++, $"{Game.NextMission.RewardPart.Name}");
 
-            if (Game.NextMission.RewardScrap > 0)
-                layer.Print(briefingBorderX + 2, y++, $"{Game.NextMission.RewardScrap} scrap");
+                if (Game.NextMission.RewardScrap > 0)
+                    layer.Print(briefingBorderX + 2, y++, $"{Game.NextMission.RewardScrap} scrap");
+            }
 
             // borders and buttons
             Terminal.Color(Colors.BorderColor);

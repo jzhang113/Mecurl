@@ -29,9 +29,9 @@
 
         // game-specific constants
         internal const double HEAT_DAMAGE = 10;
-        internal static double COOL_POWER = 1;
-        internal static double COOL_USE_AMT = 10;
-        internal static int COOL_USE_TICKS = 120;
+        internal const double COOL_POWER = 1;
+        internal const double COOL_USE_AMT = 10;
+        internal const int COOL_USE_TICKS = 120;
 
         public static double REPAIR_COST = 5;
     }

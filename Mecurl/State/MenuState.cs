@@ -3,6 +3,7 @@ using Engine;
 using Engine.Drawing;
 using Optional;
 using System;
+using System.Drawing;
 
 namespace Mecurl.State
 {
@@ -11,20 +12,28 @@ namespace Mecurl.State
         private static readonly Lazy<MenuState> _instance = new Lazy<MenuState>(() => new MenuState());
         public static MenuState Instance => _instance.Value;
 
+        private readonly Button _bStart;
+        private readonly Button _bQuit;
+
         private MenuState()
         {
+            _bStart = new Button(new Rectangle(2, EngineConsts.SCREEN_HEIGHT - 18, 11, 7),
+                "(S)tart", () => Game.StateHandler.PushState(new IntermissionState()));
+            _bQuit = new Button(new Rectangle(2, EngineConsts.SCREEN_HEIGHT - 10, 11, 7),
+                "(Q)uit", () => Game.Exit());
         }
 
         public Option<ICommand> HandleKeyInput(int key)
         {
             switch (key)
             {
+                case Terminal.TK_S:
                 case Terminal.TK_ENTER:
-                    Game.StateHandler.PushState(IntermissionState.Instance);
+                    _bStart.Press();
                     return Option.None<ICommand>();
                 case Terminal.TK_ESCAPE:
                 case Terminal.TK_Q:
-                    Game.Exit();
+                    _bQuit.Press();
                     return Option.None<ICommand>();
                 default:
                     return Option.None<ICommand>();
@@ -50,10 +59,10 @@ namespace Mecurl.State
             layer.Print(x, y++, "Shift-left or Shift-right to turn");
             layer.Print(x, y++, "Z to use coolant");
             layer.Print(x, y++, "1-6 to fire weapons");
-            layer.Print(x, y++, "While casting, press [[Enter]] to confirm or [[Esc]] to cancer");
-            layer.Print(x, y++, "[[Esc]] to quit to this menu");
+            layer.Print(x, y++, "While casting, press [[Enter]] to confirm or [[Esc]] to cancel");
 
-            layer.Print(x, ++y, "Press [[Enter]] to start");
+            _bStart.Draw(layer);
+            _bQuit.Draw(layer);            
         }
     }
 }

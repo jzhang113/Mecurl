@@ -40,7 +40,7 @@ namespace Mecurl.UI
             int y = 1;
 
             Terminal.Color(Colors.Text);
-            layer.Print(y, "snake153 the Pilot");
+            layer.Print(y, "The Pilot");
             y += 2;
 
             Terminal.Color(golden);

@@ -18,13 +18,17 @@ namespace Mecurl.Commands
 
         private readonly double _power;
 
-        public AttackCommand(ISchedulable source, int timeCost, double power, IEnumerable<Loc> targets, Option<IAnimation> animation)
+        // HACK: cheating so lasers and beams don't hit yourself
+        private readonly bool _ignoreselfdamage;
+
+        public AttackCommand(ISchedulable source, int timeCost, double power, IEnumerable<Loc> targets, Option<IAnimation> animation, bool ignoreselfdamage = false)
         {
             Source = source;
             TimeCost = timeCost;
             Animation = animation;
             Targets = targets.ToList();
             _power = power;
+            _ignoreselfdamage = ignoreselfdamage;
         }
 
         public Option<ICommand> Execute()
@@ -36,6 +40,9 @@ namespace Mecurl.Commands
             {
                 var actor = (Mech)unit;
                 var bound = new Rectangle(actor.PartHandler.Bounds.Left + actor.Pos.X, actor.PartHandler.Bounds.Top + actor.Pos.Y, actor.PartHandler.Bounds.Width, actor.PartHandler.Bounds.Height);
+
+                if (_ignoreselfdamage && unit == Source)
+                    continue;
 
                 foreach (Loc loc in Targets)
                 {

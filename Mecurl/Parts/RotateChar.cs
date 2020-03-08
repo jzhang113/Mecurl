@@ -63,5 +63,8 @@
         public static RotateChar tre = trn.Right;
         public static RotateChar trs = tre.Right;
         public static RotateChar trw = trs.Right;
+        public static RotateChar dbc = new RotateChar('╬');
+        public static RotateChar dbv = new RotateChar('║', '═');
+        public static RotateChar dbh = dbv.Right;
     }
 }

@@ -181,7 +181,7 @@ namespace Mecurl.Parts
 
                     int x1 = x - other.Bounds.Left;
                     int y1 = y - other.Bounds.Top;
-                    char piece1 = GetPiece(BoundingIndex(x1, y1));
+                    char piece1 = other.GetPiece(other.BoundingIndex(x1, y1));
 
                     // joining logic
                     if (piece0 == ' ' || piece1 == ' ' ||

@@ -10,8 +10,6 @@ using Mecurl.UI;
 using System;
 using System.Collections.Generic;
 
-using static Mecurl.Parts.RotateCharLiterals;
-
 namespace Mecurl
 {
     public class Game : BaseGame
@@ -25,12 +23,15 @@ namespace Mecurl
         private static LayerInfo _messageLayer;
         private static LayerInfo _mainLayer;
 
+        private static MissionInfo[] _missions;
+
         internal static PartHandler Blueprint { get; set; }
         internal static List<Core> AvailCores { get; private set; }
         internal static List<Part> AvailParts { get; private set; }
         internal static double Scrap { get; set; }
         internal static MissionInfo NextMission { get; set; }
         internal static int Year { get; set; }
+        internal static int Difficulty { get; set; }
 
         public Game() : base()
         {
@@ -73,33 +74,6 @@ namespace Mecurl
             Reset();
         }
 
-        internal static void BuildMech(Mech mech)
-        {
-            Direction initialFacing = Direction.N;
-            Core core = PartFactory.BuildSmallCore();
-
-            var w1 = PartFactory.BuildSmallMissile(true);
-            var w2 = PartFactory.BuildSmallMissile(false);
-
-            var ph = new PartHandler(new List<Part>()
-            {
-                core,
-                new Part(1, 2, new Loc(-2, 0), initialFacing,
-                    new RotateChar[2] { arn, arn}, 30) { Name = "Leg", SpeedDelta = -30 },
-                new Part(1, 2, new Loc(2, 0), initialFacing,
-                    new RotateChar[2] { arn, arn}, 30) { Name = "Leg", SpeedDelta = -30 },
-                w1, w2
-            })
-            {
-                Core = core
-            };
-
-            ph.WeaponGroup.Add(w1, 0);
-            ph.WeaponGroup.Add(w2, 0);
-
-            mech.PartHandler = ph;
-        }
-
         public void Start()
         {
             Terminal.Open();
@@ -126,14 +100,7 @@ namespace Mecurl
 
         public static MissionInfo GenerateMission()
         {
-            return new MissionInfo()
-            {
-                MapWidth = 100,
-                MapHeight = 100,
-                Difficulty = 1,
-                Enemies = 1,
-                RewardScrap = 200,
-            };
+            return _missions[Difficulty];
         }
 
         private bool CheckMissionCompletion()
@@ -143,12 +110,31 @@ namespace Mecurl
 
         internal static void Reset()
         {
+            _missions = new MissionInfo[5];
+            for (int i = 0; i < 5; i++)
+            {
+                var missionInfo = new MissionInfo();
+                missionInfo.MapWidth = Math.Min(80 + 25 * i, 200);
+                missionInfo.MapHeight = Math.Min(80 + 25 * i, 200);
+                missionInfo.Difficulty = i + 1;
+                missionInfo.Enemies = i + 1;
+                missionInfo.RewardScrap = Rand.Next(30, 50) * 5 + Difficulty * 40;
+                missionInfo.RewardPart = PartFactory.BuildRandom();
+                _missions[i] = missionInfo;
+            }
+
             Blueprint = new PartHandler();
             AvailCores = new List<Core>() { PartFactory.BuildSmallCore() };
-            AvailParts = new List<Part>() { PartFactory.BuildSmallMissile(true), PartFactory.BuildSmallMissile(false) };
+            AvailParts = new List<Part>() {
+                PartFactory.BuildSmallMissile(true),
+                PartFactory.BuildSmallMissile(false),
+                PartFactory.BuildLeg(true),
+                PartFactory.BuildLeg(false)
+            };
             NextMission = GenerateMission();
 
             Scrap = 0;
+            Difficulty = 0;
             Year = Game.Rand.Next(2100, 2200);
 
             Player = new Player(new Loc(1, 1));
@@ -210,6 +196,7 @@ namespace Mecurl
                 {
                     Game.AvailParts.Add(Game.NextMission.RewardPart);
                 }
+                Difficulty++;
 
                 NextMission = GenerateMission();
             }

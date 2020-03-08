@@ -1,5 +1,7 @@
 ﻿using Engine;
 using Engine.Map;
+using Mecurl.Actors;
+using Mecurl.Parts;
 using Priority_Queue;
 using System;
 using System.Collections.Generic;
@@ -9,12 +11,15 @@ namespace Mecurl.CityGen
 {
     public class CityMapgen : MapGenerator
     {
+        private MissionInfo _missionInfo;
+
         public CityMapgen(int width, int height, int level) : base(width, height, level, Game.Rand)
         {
         }
 
         public CityMapgen(MissionInfo info) : base(info.MapWidth, info.MapHeight, info.Difficulty, Game.Rand)
         {
+            _missionInfo = info;
         }
 
         protected override void CreateMap()
@@ -201,19 +206,116 @@ namespace Mecurl.CityGen
             }
         }
 
+        private void BuildMissileMech(Mech mech)
+        {
+            Core core = PartFactory.BuildSmallCore();
+
+            var w1 = PartFactory.BuildSmallMissile(true);
+            var w2 = PartFactory.BuildSmallMissile(false);
+            var l1 = PartFactory.BuildLeg(true);
+            var l2 = PartFactory.BuildLeg(false);
+
+            var ph = new PartHandler(new List<Part>()
+            {
+                core,
+                l1, l2,
+                w1, w2
+            })
+            {
+                Core = core
+            };
+
+            ph.WeaponGroup.Add(w1, 0);
+            ph.WeaponGroup.Add(w2, 0);
+
+            mech.PartHandler = ph;
+        }
+
+        private void BuildLaserMech(Mech mech)
+        {
+            Core core = PartFactory.BuildSmallCore();
+
+            var w1 = PartFactory.BuildSmallLaser();
+            w1.Center = new Loc(-3, 0);
+            w1.UpdateBounds();
+            var w2 = PartFactory.BuildSmallLaser();
+            w2.Center = new Loc(3, 0);
+            w2.UpdateBounds();
+            var l1 = PartFactory.BuildLeg(true);
+            var l2 = PartFactory.BuildLeg(false);
+
+            var ph = new PartHandler(new List<Part>()
+            {
+                core,
+                l1, l2,
+                w1, w2
+            })
+            {
+                Core = core
+            };
+
+            ph.WeaponGroup.Add(w1, 0);
+            ph.WeaponGroup.Add(w2, 0);
+
+            mech.PartHandler = ph;
+        }
+
+        private void BuildSniperMech(Mech mech)
+        {
+            Core core = PartFactory.BuildSmallCore();
+
+            var w1 = PartFactory.BuildSniper();
+            w1.Center = new Loc(2, -3);
+            w1.UpdateBounds();
+            var l1 = PartFactory.BuildLeg(true);
+            l1.Center = new Loc(-2, 1);
+            l1.UpdateBounds();
+            var l2 = PartFactory.BuildLeg(false);
+            l2.Center = new Loc(2, 1);
+            l2.UpdateBounds();
+
+            var ph = new PartHandler(new List<Part>()
+            {
+                core,
+                l1, l2,
+                w1
+            })
+            {
+                Core = core
+            };
+
+            ph.WeaponGroup.Add(w1, 0);
+
+            mech.PartHandler = ph;
+        }
+
         protected override void PlaceActors()
         {
-            for (int i = 0; i < 1; i++)
+            for (int i = 0; i < _missionInfo.Enemies; i++)
             {
-                Actors.Mech m = new Actors.Mech(new Loc(1,1), 100, 'x', Color.Red);
-                Game.BuildMech(m);
+                var m = new Mech(new Loc(1,1), 100, 'x', Color.Red);
+
+                double chance = Game.Rand.NextDouble();
+                if (chance < 0.5)
+                {
+                    BuildMissileMech(m);
+                }
+                else if (chance < 0.8)
+                {
+                    BuildLaserMech(m);
+                }
+                else
+                {
+                    BuildSniperMech(m);
+                }
+
                 m.Pos = ForcePlaceActor(m.PartHandler.Bounds);
 
                 Map.AddActor(m);
             }
 
             // find a sufficiently large place to place the mech
-            Rectangle playerBounds = ((Actors.Mech)Game.Player).PartHandler.Bounds;
+            Rectangle playerBounds = ((Mech)Game.Player).PartHandler.Bounds;
             int minClearance = Math.Max(playerBounds.Width, playerBounds.Height);
 
             Map.GetRandomOpenPoint(minClearance, 50).Match(

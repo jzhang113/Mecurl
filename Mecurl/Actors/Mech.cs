@@ -25,6 +25,7 @@ namespace Mecurl.Actors
 
         public Mech(in Loc pos, int hp, char symbol, Color color) : base(pos, hp, symbol, color)
         {
+            Name = "Mech";
             CurrentHeat = 0;
             Awareness = 30;
 
