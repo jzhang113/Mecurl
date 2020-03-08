@@ -91,7 +91,7 @@ namespace Mecurl.State
                 BackgroundColor = Color.FromArgb(152, 113, 61)
             };
             _bBegin = new Button(new Rectangle(screenWidth * 3 / 4 + xOffset, yHeight, bWidth, _bHeight),
-                "(B)egin mission", () => Game.NewMission())
+                "(B)egin mission", () => Game.NewMission(Game.NextMission))
             {
                 BackgroundColor = Color.FromArgb(57, 128, 0)
             };
@@ -579,8 +579,7 @@ namespace Mecurl.State
         private static void DrawBriefingScreen(LayerInfo layer)
         {
             // overworld map
-            layer.Print(1, 1, "This is an overworld map");
-            layer.Print(1, 2, "Imagine that you could select missions from here");
+            layer.Print(1, 1, "This is a placeholder overworld map");
 
             // mission briefing
             int buttonBorderY = layer.Height - _bHeight - 5;
@@ -589,13 +588,28 @@ namespace Mecurl.State
             Terminal.Color(Colors.Text);
             layer.Print(briefingBorderX + 1, 1, "Mission summary");
             layer.Print(briefingBorderX + 1, 2, "───────────────");
+            layer.Print(new Rectangle(briefingBorderX + 2, 3, 39, 28), "Hostile forces have been detected in the region", ContentAlignment.TopLeft);
 
 
             layer.Print(briefingBorderX + 1, 30, "Objectives");
             layer.Print(briefingBorderX + 1, 31, "──────────");
 
+            string objectiveString = Game.NextMission.MissionType switch
+            {
+                MissionType.Elim => "Eliminate all enemies",
+                _ => "None",
+            };
+            layer.Print(briefingBorderX + 2, 32, objectiveString);
+
             layer.Print(briefingBorderX + 1, 60, "Reward");
             layer.Print(briefingBorderX + 1, 61, "──────");
+
+            int y = 62;
+            if (Game.NextMission.RewardPart != null)
+               layer.Print(briefingBorderX + 2, y++, $"{Game.NextMission.RewardPart.Name}");
+
+            if (Game.NextMission.RewardScrap > 0)
+                layer.Print(briefingBorderX + 2, y++, $"{Game.NextMission.RewardScrap} scrap");
 
             // borders and buttons
             Terminal.Color(Colors.BorderColor);

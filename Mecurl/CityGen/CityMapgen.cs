@@ -13,6 +13,10 @@ namespace Mecurl.CityGen
         {
         }
 
+        public CityMapgen(MissionInfo info) : base(info.MapWidth, info.MapHeight, info.Difficulty, Game.Rand)
+        {
+        }
+
         protected override void CreateMap()
         {
             //float[,] noiseMap = Noise.Calc2D(Width, Height, 0.1f);

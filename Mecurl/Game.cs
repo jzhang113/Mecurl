@@ -28,8 +28,9 @@ namespace Mecurl
         internal static PartHandler Blueprint { get; set; }
         internal static List<Core> AvailCores { get; private set; }
         internal static List<Part> AvailParts { get; private set; }
-        internal static double Scrap { get; set; } = 1000;
-        
+        internal static double Scrap { get; set; }
+        internal static MissionInfo NextMission { get; set; }
+
         public Game() : base()
         {
             _mapLayer = new LayerInfo("Map", 1,
@@ -57,7 +58,7 @@ namespace Mecurl
 
             StateHandler = new StateHandler(MenuState.Instance, new Dictionary<Type, LayerInfo>
             {
-                [typeof(GameOverState)] = _mapLayer,
+                [typeof(MissionEndState)] = _mapLayer,
                 [typeof(NormalState)] = _mapLayer,
                 [typeof(TargettingState)] = _mapLayer,
                 [typeof(MenuState)] = _mainLayer,
@@ -66,14 +67,9 @@ namespace Mecurl
 
             AnimationHandler = new AnimationHandler();
             MessagePanel = new MessagePanel(EngineConsts.MESSAGE_HISTORY_COUNT);
-
-            Blueprint = new PartHandler();
-            AvailCores = new List<Core>() { PartFactory.BuildSmallCore() };
-            AvailParts = new List<Part>() { PartFactory.BuildSmallMissile(true), PartFactory.BuildSmallMissile(false) };
-
-            Player = new Player(new Loc(1, 1));
-
             EventScheduler = new EventScheduler(typeof(Player), AnimationHandler);
+
+            Reset();
         }
 
         internal static void BuildMech(Mech mech)
@@ -127,18 +123,44 @@ namespace Mecurl
             Run();
         }
 
-        public static void NewMission()
+        public static MissionInfo GenerateMission()
+        {
+            return new MissionInfo()
+            {
+                MapWidth = 100,
+                MapHeight = 100,
+                Difficulty = 1,
+                Enemies = 1,
+                RewardScrap = 100,
+            };
+        }
+
+        private bool CheckMissionCompletion()
+        {
+            return ((Mech)Game.Player).PartHandler.Core.Stability > 0 && MapHandler.Units.Count == 1;
+        }
+
+        internal static void Reset()
+        {
+            Blueprint = new PartHandler();
+            AvailCores = new List<Core>() { PartFactory.BuildSmallCore() };
+            AvailParts = new List<Part>() { PartFactory.BuildSmallMissile(true), PartFactory.BuildSmallMissile(false) };
+            NextMission = GenerateMission();
+
+            Player = new Player(new Loc(1, 1));
+        }
+
+        public static void NewMission(MissionInfo info)
         {
             MessagePanel.Clear();
             AnimationHandler.Clear();
 
-            //Colors.RandomizeMappings();
-            SetupLevel();
+            SetupLevel(info);
             StateHandler.PushState(NormalState.Instance);
             _mainLayer.Clear();
         }
 
-        internal static void SetupLevel()
+        internal static void SetupLevel(MissionInfo info)
         {
             Player = new Player(new Loc(1, 1));
             ((Mech)Player).PartHandler = Blueprint;
@@ -148,7 +170,7 @@ namespace Mecurl
 
             MessagePanel.Add($"Mission Start");
 
-            var mapgen = new CityMapgen(EngineConsts.MAP_WIDTH, EngineConsts.MAP_HEIGHT, 0);
+            var mapgen = new CityMapgen(info);
             MapHandler = mapgen.Generate();
             MapHandler.Refresh();
         }
@@ -157,7 +179,7 @@ namespace Mecurl
         {
             MessagePanel.Add("[color=err]System shutting down[/color]");
             MessagePanel.Add("Mission Failed. Press [[Enter]] to continue");
-            Game.StateHandler.PushState(GameOverState.Instance);
+            Game.StateHandler.PushState(new MissionEndState(false));
         }
 
         protected override void ProcessTickEvents()
@@ -171,6 +193,21 @@ namespace Mecurl
             }
 
             WallWalk = false;
+
+            if (CheckMissionCompletion())
+            {
+                MessagePanel.Add("Mission Success");
+                MessagePanel.Add("Press [[Enter]] to continue");
+                Game.StateHandler.PushState(new MissionEndState(true));
+
+                Game.Scrap += NextMission.RewardScrap;
+                if (Game.NextMission.RewardPart != null)
+                {
+                    Game.AvailParts.Add(Game.NextMission.RewardPart);
+                }
+
+                NextMission = GenerateMission();
+            }
         }
 
         public override void Render()
