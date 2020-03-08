@@ -6,7 +6,7 @@ namespace Engine
 {
     public abstract class BaseActor : ISchedulable, IDrawable
     {
-        internal static int GlobalId = 0;
+        internal static int GlobalId = 1;
         public int Id { get; }
 
         public string Name { get; protected set; } = "Monster";

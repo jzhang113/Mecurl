@@ -29,7 +29,7 @@ namespace Engine.Map
 
         // HACK: this should really be a quadtree or something
         // Tiles of each mech on  the map
-        internal (char, System.Drawing.Color)[,] MechTileMap { get; }
+        internal (char, System.Drawing.Color, int)[,] MechTileMap { get; }
 
         public MapHandler(int width, int height, int level)
         {
@@ -46,7 +46,7 @@ namespace Engine.Map
 
             _measure = EngineConsts.MEASURE;
 
-            MechTileMap = new (char, System.Drawing.Color)[width, height];
+            MechTileMap = new (char, System.Drawing.Color, int)[width, height];
         }
 
         // Recalculate the state of the world after movements happen. If only light recalculations
@@ -604,7 +604,7 @@ namespace Engine.Map
                     {
                         tile.Draw(layer);
 
-                        (char mechTile, System.Drawing.Color color) = MechTileMap[newX, newY];
+                        (char mechTile, System.Drawing.Color color, _) = MechTileMap[newX, newY];
                         Terminal.Color(color);
                         Terminal.Layer(2);
                         layer.Put(dx, dy, mechTile);
@@ -726,7 +726,7 @@ namespace Engine.Map
                         int boundsIndex = part.BoundingIndex(x, y);
                         if (part.IsPassable(boundsIndex)) continue;
 
-                        MechTileMap[x + part.Bounds.Left + actor.Pos.X, y + part.Bounds.Top + actor.Pos.Y].Item1 = ' ';
+                        MechTileMap[x + part.Bounds.Left + actor.Pos.X, y + part.Bounds.Top + actor.Pos.Y] = (' ', Colors.Background, 0);
                     }
                 }
             }
@@ -744,7 +744,7 @@ namespace Engine.Map
                         int boundsIndex = part.BoundingIndex(x, y);
                         if (part.IsPassable(boundsIndex)) continue;
 
-                        MechTileMap[x + part.Bounds.Left + pos.X, y + part.Bounds.Top + pos.Y] = (part.GetPiece(boundsIndex), actor.Color);
+                        MechTileMap[x + part.Bounds.Left + pos.X, y + part.Bounds.Top + pos.Y] = (part.GetPiece(boundsIndex), actor.Color, actor.Id);
                     }
                 }
             }

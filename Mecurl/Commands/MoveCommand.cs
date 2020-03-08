@@ -57,7 +57,7 @@ namespace Mecurl.Commands
                             if (Source == Game.Player && !Game.WallWalk)
                             {
                                 // confirm walking through walls
-                                Game.MessagePanel.Add("[color=warn]Alert[/color]: About to walk through wall");
+                                Game.MessagePanel.Add("[color=warn]Alert[/color]: Confirm walking through wall");
                                 Game.PrevCancelled = true;
                                 Game.WallWalk = true;
                                 return Option.None<ICommand>();
@@ -70,7 +70,18 @@ namespace Mecurl.Commands
                             TimeCost *= 2;
                         }
 
-                        // TODO: you can walk over other actors
+                        (char mechTile, _, int mechId) = Game.MapHandler.MechTileMap[newX, newY];
+                        if (mechId != 0 && mechId != Source.Id && mechTile != ' ')
+                        {
+                            // don't walk over other mechs
+                            if (Source == Game.Player)
+                            {
+                                Game.MessagePanel.Add("[color=warn]Alert[/color]: Cannot walk through another mech");
+                                Game.PrevCancelled = true;
+                            }
+
+                            return Option.None<ICommand>();
+                        }
                     }
                 }
             }

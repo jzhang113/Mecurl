@@ -83,15 +83,18 @@ namespace Mecurl.Commands
                             tile.IsWall = false;
                             tile.Symbol = CharUtils.GetRubbleSymbol();
                         }
-                        
-                        if (map.Units.TryGetValue(map.ToIndex(new Loc(newX, newY)), out BaseActor unit) && unit != Source)
-                        {
-                            Direction pushDir = Distance.GetNearestDirection(unit.Pos, Source.Pos);
-                            (int dx, int dy) = pushDir;
 
-                            // TODO: push should be wrt to the bounding boxes, but this probably won't matter until later
-                            // also we would need to compare bounding boxes of unit and Source
-                            //map.SetActorPosition(unit, new Loc(unit.Pos.X + dx * 5, unit.Pos.Y + dy * 5));
+                        (char mechTile, _, int mechId) = Game.MapHandler.MechTileMap[newX, newY];
+                        if (mechId != 0 && mechId != Source.Id && mechTile != ' ')
+                        {
+                            // don't walk over other mechs
+                            if (Source == Game.Player)
+                            {
+                                Game.MessagePanel.Add("[color=warn]Alert[/color]: Cannot turn through another mech");
+                                Game.PrevCancelled = true;
+                            }
+
+                            return Option.None<ICommand>();
                         }
                     }
                 }
