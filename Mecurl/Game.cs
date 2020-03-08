@@ -4,13 +4,9 @@ using Engine.Drawing;
 using Engine.Map;
 using Mecurl.Actors;
 using Mecurl.CityGen;
-using Mecurl.Commands;
 using Mecurl.Parts;
 using Mecurl.State;
 using Mecurl.UI;
-using Mercurl.Animations;
-using Optional;
-using RexTools;
 using System;
 using System.Collections.Generic;
 
@@ -29,7 +25,9 @@ namespace Mecurl
         private static LayerInfo _messageLayer;
         private static LayerInfo _mainLayer;
 
-        private static TileMap _tilemap;
+        internal static PartHandler Blueprint { get; set; }
+        internal static List<Core> AvailCores { get; private set; }
+        internal static List<Part> AvailParts { get; private set; }
 
         public Game() : base()
         {
@@ -68,33 +66,24 @@ namespace Mecurl
             AnimationHandler = new AnimationHandler();
             MessagePanel = new MessagePanel(EngineConsts.MESSAGE_HISTORY_COUNT);
 
-            var reader = new RexReader("AsciiArt/missileLauncher.xp");
-            _tilemap = reader.GetMap();
+            Blueprint = new PartHandler();
+            AvailCores = new List<Core>() { PartFactory.BuildSmallCore() };
+            AvailParts = new List<Part>() { PartFactory.BuildSmallMissile(true), PartFactory.BuildSmallMissile(false) };
 
             Player = new Player(new Loc(1, 1));
 
             EventScheduler = new EventScheduler(typeof(Player), AnimationHandler);
         }
 
-        internal static void BuildMech(Mech mech, Func<Mech, Weapon, Option<ICommand>> fire)
+        internal static void BuildMech(Mech mech)
         {
             Direction initialFacing = Direction.N;
-            var core =
-                new Core(3, 3, new Loc(0, 0), initialFacing,
-                    new RotateChar[9] { sr, b1, sl, b4, at, b3, sl, b2, sr }, 100, 1, 30)
-                { Name = "Core", HeatCapacity = 30, HeatRemoved = 0.5 };
+            Core core = PartFactory.BuildSmallCore();
 
-            var w1 = new Weapon(3, 3, new Loc(-2, 2), initialFacing,
-                    new RotateChar[9] { b2, b4, sl, b2, b4, b4, sl, b2, b2 }, 50,
-                    fire)
-            { Name = "Missiles (Left)", Art = _tilemap, HeatGenerated = 40, Cooldown = 100, SpeedDelta = 15 };
+            var w1 = PartFactory.BuildSmallMissile(true);
+            var w2 = PartFactory.BuildSmallMissile(false);
 
-            var w2 = new Weapon(3, 3, new Loc(2, 2), initialFacing,
-                    new RotateChar[9] { sr, b4, b2, b4, b4, b2, b2, b2, sr }, 50,
-                    fire)
-            { Name = "Missiles (Right)", Art = _tilemap, HeatGenerated = 3, Cooldown = 6, SpeedDelta = 15 };
-
-            var ph = new PartHandler(initialFacing, new List<Part>()
+            var ph = new PartHandler(new List<Part>()
             {
                 core,
                 new Part(1, 2, new Loc(-2, 0), initialFacing,
@@ -106,48 +95,11 @@ namespace Mecurl
             {
                 Core = core
             };
+
+            ph.WeaponGroup.Add(w1, 0);
+            ph.WeaponGroup.Add(w2, 0);
+
             mech.PartHandler = ph;
-
-            mech.PartHandler.WeaponGroup.Add(w1, 0);
-            mech.PartHandler.WeaponGroup.Add(w2, 0);
-        }
-
-        internal static Option<ICommand> AiFireMethod(Mech m, Weapon w)
-        {
-            var tz = new TargetZone(TargetShape.Range, 20, 2);
-
-            foreach (var loc in tz.GetAllValidTargets(m.Pos, m.Facing, Measure.Euclidean, true))
-            {
-                if (loc == Player.Pos)
-                {
-                    m.UpdateHeat(w.HeatGenerated);
-                    m.PartHandler.WeaponGroup.UpdateState(w);
-                    var targets = tz.GetTilesInRange(m.Pos, loc, Measure.Euclidean);
-                    var explosionAnim = Option.Some<IAnimation>(new ExplosionAnimation(targets, Colors.Fire));
-                    return Option.Some<ICommand>(new DelayAttackCommand(240, new AttackCommand(m, EngineConsts.TURN_TICKS, 10, targets, explosionAnim)));
-                }
-            }
-            
-            return Option.None<ICommand>();
-        }
-
-        private static Option<ICommand> PlayerFireMethod(Mech m, Weapon w)
-        {
-            WeaponGroup wg = m.PartHandler.WeaponGroup;
-
-            Game.StateHandler.PushState(new TargettingState(Game.MapHandler, m, Measure.Euclidean,
-                new TargetZone(TargetShape.Range, 20, 2), targets =>
-                {
-                    Game.StateHandler.PopState();
-                    Game.MessagePanel.Add($"[color=info]Info[/color]: {w.Name} fired");
-                    m.UpdateHeat(w.HeatGenerated);
-                    wg.UpdateState(w);
-
-                    var explosionAnim = Option.Some<IAnimation>(new ExplosionAnimation(targets, Colors.Fire));
-                    return Option.Some<ICommand>(new DelayAttackCommand(240, new AttackCommand(m, EngineConsts.TURN_TICKS, 10, targets, explosionAnim)));
-                }));
-
-            return Option.None<ICommand>();
         }
 
         public void Start()
@@ -188,7 +140,7 @@ namespace Mecurl
         internal static void SetupLevel()
         {
             Player = new Player(new Loc(1, 1));
-            BuildMech((Mech)Player, PlayerFireMethod);
+            ((Mech)Player).PartHandler = Blueprint;
 
             AnimationHandler.Clear();
             EventScheduler.Clear();

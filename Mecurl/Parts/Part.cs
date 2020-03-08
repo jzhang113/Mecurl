@@ -28,8 +28,10 @@ namespace Mecurl.Parts
         public int Height { get; }
 
         public Direction Facing { get; private set; }
-        public Loc Center { get; private set; }
+        public Loc Center { get; internal set; }
         public Rectangle Bounds { get; private set; }
+  
+        internal bool Invalid { get; set; }
 
         public Part(int width, int height, Loc center, Direction facing, RotateChar[] structure, double stability)
         {
@@ -46,7 +48,7 @@ namespace Mecurl.Parts
             Stability = stability;
         }
 
-        private void UpdateBounds()
+        internal void UpdateBounds()
         {
             if (Facing == Direction.N || Facing == Direction.S)
             {
@@ -170,13 +172,16 @@ namespace Mecurl.Parts
                         continue;
                     }
 
-                    int x0 = x - Bounds.Left;
-                    int y0 = y - Bounds.Top;
-                    char piece0 = Structure[x0 + y0 * Bounds.Width].Char;
+                    int boundsIndex = BoundingIndex(x - Bounds.Left, y - Bounds.Top);
+                    if (IsPassable(boundsIndex)) continue;
+
+
+                    char piece0 = GetPiece(boundsIndex);
+
 
                     int x1 = x - other.Bounds.Left;
                     int y1 = y - other.Bounds.Top;
-                    char piece1 = other.Structure[x1 + y1 * other.Bounds.Width].Char;
+                    char piece1 = GetPiece(BoundingIndex(x1, y1));
 
                     // joining logic
                     if (piece0 == ' ' || piece1 == ' ' ||

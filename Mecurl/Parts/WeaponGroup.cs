@@ -1,5 +1,6 @@
 ﻿using Engine;
 using Mecurl.Actors;
+using Mecurl.State;
 using Optional;
 using System;
 using System.Collections.Generic;
@@ -10,7 +11,7 @@ namespace Mecurl.Parts
     {
         internal List<Weapon>[] Groups { get; }
 
-        private int[] _nextWeapon;
+        private readonly int[] _nextWeapon;
 
         public WeaponGroup()
         {
@@ -33,7 +34,10 @@ namespace Mecurl.Parts
 
                 if (weapon.CurrentCooldown > 0) return Option.None<ICommand>();
 
-                return weapon.Activate(mech, weapon);
+                if (mech is Player)
+                    return PlayerFireMethod(mech, weapon);
+                else
+                    return AiFireMethod(mech, weapon);
             }
 
             return Option.None<ICommand>();
@@ -69,6 +73,39 @@ namespace Mecurl.Parts
             Groups[w.Group].Remove(w);
             Groups[newGroup].Add(w);
             w.Group = newGroup;
+        }
+
+        internal Option<ICommand> AiFireMethod(Mech m, Weapon w)
+        {
+            foreach (var loc in w.Target.GetAllValidTargets(m.Pos, m.Facing, Measure.Euclidean, true))
+            {
+                if (loc == Game.Player.Pos)
+                {
+                    m.UpdateHeat(w.HeatGenerated);
+                    m.PartHandler.WeaponGroup.UpdateState(w);
+                    var targets = w.Target.GetTilesInRange(m.Pos, loc, Measure.Euclidean);
+                    return Option.Some(w.Attack(m, targets));
+                }
+            }
+
+            return Option.None<ICommand>();
+        }
+
+        private Option<ICommand> PlayerFireMethod(Mech m, Weapon w)
+        {
+            Game.StateHandler.PushState(new TargettingState(Game.MapHandler, m, Measure.Euclidean,
+                w.Target, targets =>
+                {
+                    Game.StateHandler.PopState();
+                    Game.MessagePanel.Add($"[color=info]Info[/color]: {w.Name} fired");
+
+                    m.UpdateHeat(w.HeatGenerated);
+                    m.PartHandler.WeaponGroup.UpdateState(w);
+
+                    return Option.Some(w.Attack(m, targets));
+                }));
+
+            return Option.None<ICommand>();
         }
 
         // handling state stuff that needs to happen after the weapon has been fired

@@ -202,7 +202,7 @@ namespace Mecurl.CityGen
             for (int i = 0; i < 1; i++)
             {
                 Actors.Mech m = new Actors.Mech(new Loc(1,1), 100, 'x', Color.Red);
-                Game.BuildMech(m, Game.AiFireMethod);
+                Game.BuildMech(m);
                 m.Pos = ForcePlaceActor(m.PartHandler.Bounds);
 
                 Map.AddActor(m);

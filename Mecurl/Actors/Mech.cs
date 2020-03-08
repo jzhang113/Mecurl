@@ -305,8 +305,7 @@ namespace Mecurl.Actors
         {
             if (!ShouldDraw) return;
 
-            Terminal.Color(Color);
-            PartHandler.Draw(layer, Pos);
+            PartHandler.Draw(layer, Pos, Color);
         }
     }
 }
