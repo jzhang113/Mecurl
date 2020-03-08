@@ -35,8 +35,24 @@ namespace Mecurl.State
         private const int _buildCenterX = 70;
         private const int _buildCenterY = 40;
 
+        private static double[,] _perlinMap;
+        private static double[,] _perlinMap2;
+
         private IntermissionState()
         {
+            var _gen = new Perlin();
+            _perlinMap = new double[95, 67];
+            _perlinMap2 = new double[95, 67];
+            for (int x = 0; x < 95; x++)
+            {
+                for (int y = 0; y < 67; y++)
+                {
+                    _perlinMap[x, y] = _gen.OctavePerlin(x * 0.2 + 5.3, y * 0.15 + 5.9, 14.44, 10, 0.5);
+                    _perlinMap2[x, y] = _gen.OctavePerlin(x * 0.4 + 45.3, y * 0.6 + 11.2, 18.7, 10, 0.5);
+                }
+            }
+
+
             Core core = Game.AvailCores[0];
             var w1 = Game.AvailParts[0];
             var w2 = Game.AvailParts[1];
@@ -425,7 +441,15 @@ namespace Mecurl.State
                 var core = Game.AvailCores[i];
                 int yOffset = (corePanelHeight - core.Height) / 2;
 
-                core.Draw(layer, new Loc(xPos + 2, yOffset + 3));
+                for (int x = 0; x < core.Bounds.Width; x++)
+                {
+                    for (int y = 0; y < core.Bounds.Height; y++)
+                    {
+                        int boundsIndex = core.BoundingIndex(x, y);
+                        char c = core.GetPiece(boundsIndex);
+                        layer.Put(xPos + 2 + core.Center.X + x - 1, yOffset + 3 + core.Center.Y + y - 1, c);
+                    }
+                }
 
                 if (i == _selectedIndex)
                 {
@@ -498,7 +522,21 @@ namespace Mecurl.State
             {
                 var ph = _hangar[_selectedIndex];
 
-                ph.Draw(layer, new Loc(_buildCenterX, _buildCenterY), Colors.Player);
+                Terminal.Layer(2);
+                foreach (Part part in ph)
+                {
+                    Terminal.Color(part.Invalid ? Color.Red : Colors.Player);
+                    for (int x = 0; x < part.Bounds.Width; x++)
+                    {
+                        for (int y = 0; y < part.Bounds.Height; y++)
+                        {
+                            int boundsIndex = part.BoundingIndex(x, y);
+                            char c = part.GetPiece(boundsIndex);
+                            layer.Put(_buildCenterX + part.Center.X + x - 1, _buildCenterY + part.Center.Y + y - 1, c);
+                        }
+                    }
+                }
+                Terminal.Layer(1);
 
                 Terminal.Color(_bs == BuildState.AddSelect || _bs == BuildState.Add ? Colors.HighlightColor : Colors.Text);
                 layer.Print(infoBorderX + 1, buttonBorderY - 1, "(A)dd");
@@ -527,7 +565,16 @@ namespace Mecurl.State
                     Rectangle bounds = _selectedPart.Bounds;
                     int dx = _cursorX - _prevCursor.Item1;
                     int dy = _cursorY - _prevCursor.Item2;
-                    _selectedPart.Draw(layer, new Loc(_buildCenterX + dx, _buildCenterY + dy));
+
+                    for (int x = 0; x < _selectedPart.Bounds.Width; x++)
+                    {
+                        for (int y = 0; y < _selectedPart.Bounds.Height; y++)
+                        {
+                            int boundsIndex = _selectedPart.BoundingIndex(x, y);
+                            char c = _selectedPart.GetPiece(boundsIndex);
+                            layer.Put(_buildCenterX + _selectedPart.Bounds.Left + dx + x, _buildCenterY + _selectedPart.Bounds.Top + dy + y, c);
+                        }
+                    }
                 }
 
                 Terminal.Layer(2);
@@ -579,7 +626,47 @@ namespace Mecurl.State
         private static void DrawBriefingScreen(LayerInfo layer)
         {
             // overworld map
-            layer.Print(1, 1, "This is a placeholder overworld map");
+            Terminal.Layer(2);
+            layer.Print(1, 1, $"Overworld map");
+            Terminal.Layer(1);
+            for (int i = 0; i < 95; i++)
+            {
+                for (int j = 0; j < 67; j++)
+                {
+                    if (_perlinMap[i,j] < 0.37)
+                    {
+                        Terminal.Color(Color.Blue);
+                    }
+                    else
+                    {
+                        Terminal.Color(Color.Green);
+                    }
+
+                    char c;
+                    if (_perlinMap2[i,j] < 0.35)
+                    {
+                        c = ' ';
+                    }
+                    else if (_perlinMap2[i, j] < 0.4)
+                    {
+                        c = '░';
+                    }
+                    else if (_perlinMap2[i, j] < 0.47)
+                    {
+                        c = '▒';
+                    }
+                    else if (_perlinMap2[i, j] < 0.55)
+                    {
+                        c = '▓';
+                    }
+                    else
+                    {
+                        c = '█';
+                    }
+
+                    Terminal.Put(2 + i, 2 + j, c);
+                }
+            }
 
             // mission briefing
             int buttonBorderY = layer.Height - _bHeight - 5;
@@ -606,7 +693,7 @@ namespace Mecurl.State
 
             int y = 62;
             if (Game.NextMission.RewardPart != null)
-               layer.Print(briefingBorderX + 2, y++, $"{Game.NextMission.RewardPart.Name}");
+                layer.Print(briefingBorderX + 2, y++, $"{Game.NextMission.RewardPart.Name}");
 
             if (Game.NextMission.RewardScrap > 0)
                 layer.Print(briefingBorderX + 2, y++, $"{Game.NextMission.RewardScrap} scrap");

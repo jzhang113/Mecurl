@@ -30,6 +30,7 @@ namespace Mecurl
         internal static List<Part> AvailParts { get; private set; }
         internal static double Scrap { get; set; }
         internal static MissionInfo NextMission { get; set; }
+        internal static int Year { get; set; }
 
         public Game() : base()
         {
@@ -131,7 +132,7 @@ namespace Mecurl
                 MapHeight = 100,
                 Difficulty = 1,
                 Enemies = 1,
-                RewardScrap = 100,
+                RewardScrap = 200,
             };
         }
 
@@ -146,6 +147,9 @@ namespace Mecurl
             AvailCores = new List<Core>() { PartFactory.BuildSmallCore() };
             AvailParts = new List<Part>() { PartFactory.BuildSmallMissile(true), PartFactory.BuildSmallMissile(false) };
             NextMission = GenerateMission();
+
+            Scrap = 0;
+            Year = Game.Rand.Next(2100, 2200);
 
             Player = new Player(new Loc(1, 1));
         }
@@ -200,6 +204,7 @@ namespace Mecurl
                 MessagePanel.Add("Press [[Enter]] to continue");
                 Game.StateHandler.PushState(new MissionEndState(true));
 
+                Game.Year++;
                 Game.Scrap += NextMission.RewardScrap;
                 if (Game.NextMission.RewardPart != null)
                 {
