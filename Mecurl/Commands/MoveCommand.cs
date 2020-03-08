@@ -34,8 +34,8 @@ namespace Mecurl.Commands
                 return Option.None<ICommand>();
             }
 
-            // Don't walk into walls, unless the Actor is currently phasing or we are already
-            // inside a wall (to prevent getting stuck).
+            bool wallPenalty = false;
+            // walking through walls and other mechs
             foreach (var p in Source.PartHandler)
             {
                 for (int x = 0; x < p.Bounds.Width; x++)
@@ -66,8 +66,8 @@ namespace Mecurl.Commands
                             tile.IsWall = false;
                             tile.Symbol = CharUtils.GetRubbleSymbol();
 
-                            // wall walking is penalized by a speed reduction
-                            TimeCost *= 2;
+                            // wall walking is penalized by a speed reduction (but only apply this penalty once)
+                            wallPenalty = true;
                         }
 
                         (char mechTile, _, int mechId) = Game.MapHandler.MechTileMap[newX, newY];
@@ -84,6 +84,11 @@ namespace Mecurl.Commands
                         }
                     }
                 }
+            }
+
+            if (wallPenalty)
+            {
+                TimeCost *= 2;
             }
 
             Game.MapHandler.SetActorPosition(Source, _nextPos);

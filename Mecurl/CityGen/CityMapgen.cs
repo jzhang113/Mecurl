@@ -199,7 +199,7 @@ namespace Mecurl.CityGen
 
         protected override void PlaceActors()
         {
-            for (int i = 0; i < 3; i++)
+            for (int i = 0; i < 1; i++)
             {
                 Actors.Mech m = new Actors.Mech(new Loc(1,1), 100, 'x', Color.Red);
                 Game.BuildMech(m, Game.AiFireMethod);

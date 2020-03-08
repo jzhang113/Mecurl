@@ -7,8 +7,8 @@
         public const double LIGHT_DECAY = 0.06;
 
         // UI constants
-        public const int MAP_WIDTH = 200;
-        public const int MAP_HEIGHT = 200;
+        public const int MAP_WIDTH = 100;
+        public const int MAP_HEIGHT = 100;
         public const int MAPVIEW_WIDTH = 100;
         public const int MAPVIEW_HEIGHT = 75;
         public const int SIDEBAR_WIDTH = 20;

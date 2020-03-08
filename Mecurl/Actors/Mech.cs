@@ -58,7 +58,7 @@ namespace Mecurl.Actors
             var groupn = new int[] { 1, 2, 3, 4, 5, 6 };
             (int firstn, _) = groupn
                 .Select(n => (n, PartHandler.WeaponGroup.CanFireGroup(n - 1)))
-                .FirstOrDefault();
+                .FirstOrDefault(status => status.Item2);
 
             if (firstn > 0)
             {
