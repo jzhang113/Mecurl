@@ -14,15 +14,16 @@ namespace Mecurl.Commands
         public int TimeCost { get; }
         public Option<IAnimation> Animation { get; private set; }
 
-        private readonly ICollection<Loc> _targets;
+        public ICollection<Loc> Targets { get; }
+
         private readonly double _power;
 
-        public AttackCommand(ISchedulable source, int delay, double power, IEnumerable<Loc> targets, Option<IAnimation> animation)
+        public AttackCommand(ISchedulable source, int timeCost, double power, IEnumerable<Loc> targets, Option<IAnimation> animation)
         {
             Source = source;
-            TimeCost = delay;
+            TimeCost = timeCost;
             Animation = animation;
-            _targets = targets.ToList();
+            Targets = targets.ToList();
             _power = power;
         }
 
@@ -36,7 +37,7 @@ namespace Mecurl.Commands
                 var actor = (Mech)unit;
                 var bound = new Rectangle(actor.PartHandler.Bounds.Left + actor.Pos.X, actor.PartHandler.Bounds.Top + actor.Pos.Y, actor.PartHandler.Bounds.Width, actor.PartHandler.Bounds.Height);
 
-                foreach (Loc loc in _targets)
+                foreach (Loc loc in Targets)
                 {
                     if (bound.Contains(loc.X, loc.Y))
                     {
@@ -49,11 +50,11 @@ namespace Mecurl.Commands
             // assign damage to any entity identified by the bounds check
             foreach (Mech actor in potentialIntersects)
             {
-                actor.AssignDamage(_targets, _power);
+                actor.AssignDamage(Targets, _power);
             }
 
             // assign damage to terrain
-            foreach (Loc loc in _targets)
+            foreach (Loc loc in Targets)
             {
                 Tile tile = Game.MapHandler.Field[loc];
                 if (tile.IsWall)

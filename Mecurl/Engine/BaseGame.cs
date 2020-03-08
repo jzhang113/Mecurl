@@ -46,7 +46,6 @@ namespace Engine
 
             const int updateLimit = 10;
             TimeSpan maxDt = FrameRate * updateLimit;
-            IAnimation current = null;
 
             while (!_exiting)
             {
@@ -62,26 +61,19 @@ namespace Engine
 
                 while (accum >= FrameRate)
                 {
-                    if (current == null)
+                    EventScheduler.ExecuteCommand(Player, StateHandler.HandleInput(), () =>
                     {
-                        EventScheduler.ExecuteCommand(Player, StateHandler.HandleInput(), () =>
+                        if (!PrevCancelled)
                         {
-                            if (!PrevCancelled)
-                            {
-                                ProcessTickEvents();
-                                MapHandler.Refresh();
-                                EventScheduler.Update();
-                            }
-                            else
-                            {
-                                PrevCancelled = false;
-                            }
-                        });
-                    }
-                    else if (Terminal.HasInput())
-                    {
-                        Terminal.Read();
-                    }
+                            ProcessTickEvents();
+                            MapHandler.Refresh();
+                            EventScheduler.Update();
+                        }
+                        else
+                        {
+                            PrevCancelled = false;
+                        }
+                    });
 
                     Ticks += FrameRate;
                     accum -= FrameRate;

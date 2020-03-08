@@ -8,7 +8,7 @@ namespace Mecurl.Commands
     internal class MoveCommand : ICommand
     {
         public Mech Source { get; }
-        public int TimeCost { get; }
+        public int TimeCost { get; private set; }
 
         public Option<IAnimation> Animation { get; private set; }
 
@@ -65,6 +65,9 @@ namespace Mecurl.Commands
 
                             tile.IsWall = false;
                             tile.Symbol = CharUtils.GetRubbleSymbol();
+
+                            // wall walking is penalized by a speed reduction
+                            TimeCost *= 2;
                         }
 
                         // TODO: you can walk over other actors

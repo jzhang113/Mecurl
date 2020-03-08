@@ -81,7 +81,7 @@ namespace Engine.Map
             unitTile.IsOccupied = false;
             unitTile.BlocksLight = false;
 
-            RemoveFromMechTileMap(unit);
+            if (unit is Mecurl.Actors.Mech) RemoveFromMechTileMap(unit);
 
             BaseGame.EventScheduler.RemoveActor(unit);
             return true;
@@ -98,13 +98,13 @@ namespace Engine.Map
             tile.IsOccupied = false;
             tile.BlocksLight = false;
             Units.Remove(ToIndex(actor.Pos));
-            RemoveFromMechTileMap(actor);
+            if (actor is Mecurl.Actors.Mech) RemoveFromMechTileMap(actor);
 
             actor.Pos = pos;
             newTile.IsOccupied = true;
             newTile.BlocksLight = actor.BlocksLight;
             Units.Add(ToIndex(pos), actor);
-            AddToMechTileMap(actor, pos);
+            if (actor is Mecurl.Actors.Mech) AddToMechTileMap(actor, pos);
 
             return true;
         }

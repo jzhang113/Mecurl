@@ -1,4 +1,5 @@
-﻿using Optional;
+﻿using Mecurl;
+using Optional;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -30,6 +31,11 @@ namespace Engine
             _schedule.Add(unit, unit.Speed);
         }
 
+        internal void AddEvent(ISchedulable ev, int delay)
+        {
+            _schedule.Add(ev, delay);
+        }
+
         internal void RemoveActor(BaseActor unit)
         {
             _schedule.Remove(unit);
@@ -53,6 +59,12 @@ namespace Engine
                         else
                         {
                             ExecuteCommand(entity, entity.Act(), () => { });
+
+                            // remove any events that have completed
+                            if (!(entity is BaseActor))
+                            {
+                                _schedule.Remove(entity);
+                            }
                         }
                     }
                     else
@@ -67,9 +79,11 @@ namespace Engine
         {
             action.MatchSome(command =>
             {
-                int timeCost = command.TimeCost;
+                // note that Execute is allowed to modify TimeCost (which is necessary to detect
+                // some things like wall walking)
                 var retry = command.Execute();
                 var animation = command.Animation;
+                int timeCost = command.TimeCost;
 
                 while (retry.HasValue)
                 {
@@ -82,7 +96,22 @@ namespace Engine
                 }
 
                 _schedule[entity] += timeCost;
-                animation.MatchSome(anim => _animationHandler.Add(entity.Id, anim));
+
+                bool isEvent = !(entity is BaseActor);
+                // events get a special id of -1 for animations
+                int animId = isEvent ? -1 : entity.Id;
+                animation.MatchSome(anim => _animationHandler.Add(animId, anim));
+
+                if (isEvent)
+                {
+                    Game.MapHandler.Refresh();
+
+                    if (Game.Player.DeathCheck())
+                    {
+                        Game.Player.TriggerDeath();
+                    }
+                }
+
                 after();
             });
         }

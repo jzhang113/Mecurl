@@ -195,8 +195,8 @@ namespace Mecurl.Actors
                 {
                     for (int y = 0; y < p.Bounds.Height; y++)
                     {
-                        int xPos = Pos.X + x + p.Center.X;
-                        int yPos = Pos.Y + y + p.Center.Y;
+                        int xPos = Pos.X + x + p.Bounds.Left;
+                        int yPos = Pos.Y + y + p.Bounds.Top;
                         var tile = Game.MapHandler.Field[xPos, yPos];
 
                         if (!tile.IsWall)

@@ -124,7 +124,7 @@ namespace Mecurl
                     m.PartHandler.WeaponGroup.UpdateState(w);
                     var targets = tz.GetTilesInRange(m.Pos, loc, Measure.Euclidean);
                     var explosionAnim = Option.Some<IAnimation>(new ExplosionAnimation(targets, Colors.Fire));
-                    return Option.Some<ICommand>(new AttackCommand(m, EngineConsts.TURN_TICKS, 10, targets, explosionAnim));
+                    return Option.Some<ICommand>(new DelayAttackCommand(240, new AttackCommand(m, EngineConsts.TURN_TICKS, 10, targets, explosionAnim)));
                 }
             }
             
@@ -144,7 +144,7 @@ namespace Mecurl
                     wg.UpdateState(w);
 
                     var explosionAnim = Option.Some<IAnimation>(new ExplosionAnimation(targets, Colors.Fire));
-                    return Option.Some<ICommand>(new AttackCommand(m, EngineConsts.TURN_TICKS, 10, targets, explosionAnim));
+                    return Option.Some<ICommand>(new DelayAttackCommand(240, new AttackCommand(m, EngineConsts.TURN_TICKS, 10, targets, explosionAnim)));
                 }));
 
             return Option.None<ICommand>();
@@ -236,6 +236,14 @@ namespace Mecurl
                 RadarPanel.Draw(_radarLayer);
                 ObjectivePanel.Draw(_objectiveLayer);
                 MessagePanel.Draw(_messageLayer);
+
+                foreach (KeyValuePair<ISchedulable, int> kvp in EventScheduler._schedule)
+                {
+                    if (kvp.Key is DelayAttack da)
+                    {
+                        da.Draw(_mapLayer);
+                    }
+                }
             }
 
             Terminal.Refresh();

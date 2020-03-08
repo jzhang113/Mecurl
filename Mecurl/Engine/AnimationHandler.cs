@@ -37,34 +37,20 @@ namespace Engine
 
         public void Update(TimeSpan frameTime, double remaining)
         {
-            foreach ((int _, List<IAnimation> queue) in _current)
+            foreach ((int id, List<IAnimation> queue) in _current)
             {
                 IAnimation animation = queue.FirstOrDefault();
 
                 if (animation == null)
                     continue;
 
-                if (animation.Update(frameTime) || EventScheduler.Turn > animation.Turn + 1)
+                // id -1 is for events, which doesn't respect turn cancelling
+                // this is because the animation of events are instantiated before they occur
+                // meaning that it looks like it is an old animation from several turns ago
+                if (animation.Update(frameTime) || (id != -1 && EventScheduler.Turn > animation.Turn + 1))
                 {
                     animation.Cleanup();
                     queue.Remove(animation);
-
-                    //if (animation is MoveAnimation currMove
-                    //    && Game.MapHandler.Field[currMove._source.Pos].IsVisible)
-                    //{
-                    //    currMove._source.ShouldDraw = true;
-
-                    //    foreach (IAnimation other in queue)
-                    //    {
-                    //        if (other != animation
-                    //            && other is MoveAnimation nextMove
-                    //            && nextMove._source == currMove._source)
-                    //        {
-                    //            nextMove._source.ShouldDraw = false;
-                    //            nextMove._multmove = false;
-                    //        }
-                    //    }
-                    //}
                 }
             }
         }
