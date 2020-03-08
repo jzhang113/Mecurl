@@ -24,5 +24,6 @@
 
         public const int MESSAGE_HISTORY_COUNT = 100;
         public const Measure MEASURE = Measure.Chebyshev;
+        public const int TURN_TICKS = 120;
     }
 }

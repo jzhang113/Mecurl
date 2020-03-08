@@ -9,6 +9,7 @@ namespace Mecurl.Commands
     internal class TurnCommand : ICommand
     {
         public Mech Source { get; }
+        public int TimeCost { get; }
         public Option<IAnimation> Animation => Option.None<IAnimation>();
 
         // we only actually care about two specific rotations, 90 to the left and 90 to the right
@@ -17,6 +18,9 @@ namespace Mecurl.Commands
         public TurnCommand(Mech source, double angle)
         {
             Source = source;
+
+            // turning is twice as fast as moving
+            TimeCost = source.PartHandler.GetMoveSpeed() / 2;
 
             // we use the right-hand rule, so negative rotations are clockwise
             _rightTurn = angle < 0;

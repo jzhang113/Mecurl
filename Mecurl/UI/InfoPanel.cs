@@ -24,6 +24,9 @@ namespace Mecurl.UI
 
         public static void Draw(LayerInfo layer)
         {
+            Terminal.Color(Colors.Text);
+            layer.Print(1, 80, $"{EventScheduler._schedule[Game.Player]}");
+
             // draw borders
             Terminal.Color(Colors.BorderColor);
             layer.DrawBorders(new BorderInfo

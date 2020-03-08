@@ -11,6 +11,7 @@ namespace Mecurl.Commands
     internal class AttackCommand : ICommand
     {
         public ISchedulable Source { get; }
+        public int TimeCost { get; }
         public Option<IAnimation> Animation { get; private set; }
 
         private readonly ICollection<Loc> _targets;
@@ -19,6 +20,7 @@ namespace Mecurl.Commands
         public AttackCommand(ISchedulable source, int delay, double power, IEnumerable<Loc> targets, Option<IAnimation> animation)
         {
             Source = source;
+            TimeCost = delay;
             Animation = animation;
             _targets = targets.ToList();
             _power = power;

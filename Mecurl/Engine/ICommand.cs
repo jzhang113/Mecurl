@@ -9,5 +9,8 @@ namespace Engine
 
         // Execute the Action and return an alternative if it fails. Returns None on success.
         Option<ICommand> Execute();
+
+        // How long it takes to recover (aka speed) - baseline is 120
+        int TimeCost { get; }
     }
 }

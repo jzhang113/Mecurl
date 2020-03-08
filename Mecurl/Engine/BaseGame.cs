@@ -64,7 +64,7 @@ namespace Engine
                 {
                     if (current == null)
                     {
-                        EventScheduler.ExecuteCommand(Player.Id, StateHandler.HandleInput(), () =>
+                        EventScheduler.ExecuteCommand(Player, StateHandler.HandleInput(), () =>
                         {
                             if (!PrevCancelled)
                             {

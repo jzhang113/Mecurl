@@ -80,27 +80,27 @@ namespace Mecurl
         {
             Direction initialFacing = Direction.N;
             var core =
-                new Part(3, 3, new Loc(0, 0), initialFacing,
-                    new RotateChar[9] { sr, b1, sl, b4, at, b3, sl, b2, sr }, 100)
+                new Core(3, 3, new Loc(0, 0), initialFacing,
+                    new RotateChar[9] { sr, b1, sl, b4, at, b3, sl, b2, sr }, 100, 1)
                 { Name = "Core", HeatCapacity = 30, HeatRemoved = 0.5 };
 
             var w1 = new Weapon(3, 3, new Loc(-2, 2), initialFacing,
                     new RotateChar[9] { b2, b4, sl, b2, b4, b4, sl, b2, b2 }, 50,
                     fire)
-            { Name = "Missiles (Left)", Art = _tilemap, HeatGenerated = 40, Cooldown = 100 };
+            { Name = "Missiles (Left)", Art = _tilemap, HeatGenerated = 40, Cooldown = 100, SpeedDelta = 15 };
 
             var w2 = new Weapon(3, 3, new Loc(2, 2), initialFacing,
                     new RotateChar[9] { sr, b4, b2, b4, b4, b2, b2, b2, sr }, 50,
                     fire)
-            { Name = "Missiles (Right)", Art = _tilemap, HeatGenerated = 3, Cooldown = 6 };
+            { Name = "Missiles (Right)", Art = _tilemap, HeatGenerated = 3, Cooldown = 6, SpeedDelta = 15 };
 
             var ph = new PartHandler(initialFacing, new List<Part>()
             {
                 core,
                 new Part(1, 2, new Loc(-2, 0), initialFacing,
-                    new RotateChar[2] { arn, arn}, 30) { Name = "Leg" },
+                    new RotateChar[2] { arn, arn}, 30) { Name = "Leg", SpeedDelta = -30 },
                 new Part(1, 2, new Loc(2, 0), initialFacing,
-                    new RotateChar[2] { arn, arn}, 30) { Name = "Leg" },
+                    new RotateChar[2] { arn, arn}, 30) { Name = "Leg", SpeedDelta = -30 },
                 w1, w2
             })
             {
@@ -124,7 +124,7 @@ namespace Mecurl
                     m.PartHandler.WeaponGroup.UpdateState(w);
                     var targets = tz.GetTilesInRange(m.Pos, loc, Measure.Euclidean);
                     var explosionAnim = Option.Some<IAnimation>(new ExplosionAnimation(targets, Colors.Fire));
-                    return Option.Some<ICommand>(new AttackCommand(m, 400, 10, targets, explosionAnim));
+                    return Option.Some<ICommand>(new AttackCommand(m, EngineConsts.TURN_TICKS, 10, targets, explosionAnim));
                 }
             }
             
@@ -144,7 +144,7 @@ namespace Mecurl
                     wg.UpdateState(w);
 
                     var explosionAnim = Option.Some<IAnimation>(new ExplosionAnimation(targets, Colors.Fire));
-                    return Option.Some<ICommand>(new AttackCommand(m, 400, 10, targets, explosionAnim));
+                    return Option.Some<ICommand>(new AttackCommand(m, EngineConsts.TURN_TICKS, 10, targets, explosionAnim));
                 }));
 
             return Option.None<ICommand>();

@@ -7,7 +7,7 @@ namespace Engine
 {
     public class EventScheduler
     {
-        private readonly IDictionary<ISchedulable, int> _schedule;
+        internal static readonly IDictionary<ISchedulable, int> _schedule = new Dictionary<ISchedulable, int>();
         private readonly Type _playerType;
         private readonly AnimationHandler _animationHandler;
 
@@ -17,7 +17,6 @@ namespace Engine
         {
             _playerType = playerType;
             _animationHandler = handler;
-            _schedule = new Dictionary<ISchedulable, int>();
             Turn = 0;
         }
 
@@ -43,10 +42,9 @@ namespace Engine
             {
                 foreach ((ISchedulable entity, int value) in _schedule.ToList())
                 {
-                    int timeTilAct = value - 1;
+                    int timeTilAct = value - entity.Speed;
                     if (timeTilAct <= 0)
                     {
-                        _schedule[entity] = entity.Speed;
                         if (entity.GetType() == _playerType)
                         {
                             Turn++;
@@ -54,7 +52,7 @@ namespace Engine
                         }
                         else
                         {
-                            ExecuteCommand(entity.Id, entity.Act(), () => { });
+                            ExecuteCommand(entity, entity.Act(), () => { });
                         }
                     }
                     else
@@ -65,10 +63,11 @@ namespace Engine
             }
         }
 
-        internal void ExecuteCommand(int sourceId, Option<ICommand> action, Action after)
+        internal void ExecuteCommand(ISchedulable entity, Option<ICommand> action, Action after)
         {
             action.MatchSome(command =>
             {
+                int timeCost = command.TimeCost;
                 var retry = command.Execute();
                 var animation = command.Animation;
 
@@ -76,12 +75,14 @@ namespace Engine
                 {
                     retry.MatchSome(c =>
                     {
+                        timeCost = c.TimeCost;
                         retry = c.Execute();
                         animation = c.Animation;
                     });
                 }
 
-                animation.MatchSome(anim => _animationHandler.Add(sourceId, anim));
+                _schedule[entity] += timeCost;
+                animation.MatchSome(anim => _animationHandler.Add(entity.Id, anim));
                 after();
             });
         }

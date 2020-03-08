@@ -1,14 +1,15 @@
 ﻿using Engine;
 using Mecurl.Actors;
-using Mecurl.Parts;
 using Optional;
-using System.Drawing;
+using System;
 
 namespace Mecurl.Commands
 {
     internal class MoveCommand : ICommand
     {
         public Mech Source { get; }
+        public int TimeCost { get; }
+
         public Option<IAnimation> Animation { get; private set; }
 
         private readonly Loc _nextPos;
@@ -17,6 +18,7 @@ namespace Mecurl.Commands
         {
             Source = source;
             _nextPos = pos;
+            TimeCost = source.PartHandler.GetMoveSpeed();
         }
 
         public Option<ICommand> Execute()

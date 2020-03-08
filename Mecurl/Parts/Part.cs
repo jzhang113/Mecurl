@@ -15,9 +15,10 @@ namespace Mecurl.Parts
         public double Stability { get; set; }
         public TileMap Art { get; set; }
 
-        public double HeatGenerated { get; set; }
-        public double HeatCapacity { get; set; }
-        public double HeatRemoved { get; set; }
+        public double HeatGenerated { get; internal set; }
+        public double HeatCapacity { get; internal set; }
+        public double HeatRemoved { get; internal set; }
+        public int SpeedDelta { get; internal set; }
 
         public int Cooldown { get; set; }
         internal int CurrentCooldown { get; set; }

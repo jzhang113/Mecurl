@@ -11,13 +11,14 @@ namespace Mecurl.Parts
     public class PartHandler : IEnumerable<Part>
     {
         // TODO: should probably be passed in
-        public Part Core { get; internal set; }
+        public Core Core { get; internal set; }
 
         public ICollection<Part> PartList { get; }
         public WeaponGroup WeaponGroup { get; }
 
         public Rectangle Bounds { get; private set; }
         public Direction Facing { get; private set; }
+
         public double TotalHeatCapacity { get; private set; }
 
         public PartHandler(Direction facing)
@@ -90,6 +91,23 @@ namespace Mecurl.Parts
 
             // update heat capacity
             TotalHeatCapacity -= p.HeatCapacity;
+        }
+
+        public int GetMoveSpeed()
+        {
+            // TODO: revisit this for balancing
+            // multiply the base time cost by core type
+            double timeCost = EngineConsts.TURN_TICKS * Core.SpeedMultiplier;
+
+            // every part has an associated speed delta
+            // this is generally positive on heavy parts and negative on propulsion
+            foreach (var part in PartList)
+            {
+                timeCost += part.SpeedDelta;
+            }
+
+            // limit move speed changes up to 4x 
+            return Math.Clamp((int)timeCost, 30, 480);
         }
 
         internal void RotateRight()
