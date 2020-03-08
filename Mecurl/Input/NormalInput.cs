@@ -18,6 +18,7 @@ namespace Mecurl.Input
         WeaponGroup5,
         WeaponGroup6,
         Wait,
+        UseCoolant,
     }
 
     internal static partial class InputMapping

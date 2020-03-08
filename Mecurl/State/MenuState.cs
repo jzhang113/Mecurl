@@ -48,6 +48,7 @@ namespace Mecurl.State
             layer.Print(x, y++, "Controls:");
             layer.Print(x, y++, "Arrow keys, or number pad to move");
             layer.Print(x, y++, "Shift-left or Shift-right to turn");
+            layer.Print(x, y++, "Z to use coolant");
             layer.Print(x, y++, "1-6 to fire weapons");
             layer.Print(x, y++, "While casting, press [[Enter]] to confirm or [[Esc]] to cancer");
             layer.Print(x, y++, "[[Esc]] to quit to this menu");

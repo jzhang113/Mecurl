@@ -58,6 +58,11 @@ namespace Mecurl.State
                 case NormalInput.WeaponGroup6:
                     return player.PartHandler.WeaponGroup.FireGroup(player, 5);
                 #endregion
+
+                case NormalInput.UseCoolant:
+                    player.UseCoolant();
+                    return Option.Some<ICommand>(new WaitCommand(player, EngineConsts.COOL_USE_TICKS));
+
             }
 
             return Option.None<ICommand>();

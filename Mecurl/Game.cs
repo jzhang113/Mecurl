@@ -81,7 +81,7 @@ namespace Mecurl
             Direction initialFacing = Direction.N;
             var core =
                 new Core(3, 3, new Loc(0, 0), initialFacing,
-                    new RotateChar[9] { sr, b1, sl, b4, at, b3, sl, b2, sr }, 100, 1)
+                    new RotateChar[9] { sr, b1, sl, b4, at, b3, sl, b2, sr }, 100, 1, 30)
                 { Name = "Core", HeatCapacity = 30, HeatRemoved = 0.5 };
 
             var w1 = new Weapon(3, 3, new Loc(-2, 2), initialFacing,

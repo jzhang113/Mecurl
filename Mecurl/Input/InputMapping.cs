@@ -42,6 +42,7 @@ namespace Mecurl.Input
                         [Terminal.TK_4] =           NormalInput.WeaponGroup4,
                         [Terminal.TK_5] =           NormalInput.WeaponGroup5,
                         [Terminal.TK_6] =           NormalInput.WeaponGroup6,
+                        [Terminal.TK_Z] =           NormalInput.UseCoolant,
                     },
                     Shift = new Dictionary<int, NormalInput>()
                     {

@@ -22,8 +22,15 @@
         public const char HEADER_RIGHT = '─';
         public const char HEADER_SEP = '│';   // 179
 
+        // misc constants
         public const int MESSAGE_HISTORY_COUNT = 100;
         public const Measure MEASURE = Measure.Chebyshev;
         public const int TURN_TICKS = 120;
+
+        // game-specific constants
+        internal const double HEAT_DAMAGE = 10;
+        internal static double COOL_POWER = 1;
+        internal static double COOL_USE_AMT = 10;
+        internal static int COOL_USE_TICKS = 120;
     }
 }

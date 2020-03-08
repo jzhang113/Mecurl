@@ -48,6 +48,13 @@ namespace Mecurl.Actors
         {
             ProcessTick();
 
+            // use coolant when heat is too high
+            if (CurrentHeat > PartHandler.TotalHeatCapacity && PartHandler.Core.Coolant > 0)
+            {
+                UseCoolant();
+                return Option.Some<ICommand>(new WaitCommand(this, EngineConsts.COOL_USE_TICKS));
+            }
+
             // dumb mech ai - order of priorities
             // 1. shooting the enemy
             // 2. chasing the enemy (weapons off cooldown)
@@ -209,6 +216,22 @@ namespace Mecurl.Actors
             }
         }
 
+        internal void UseCoolant()
+        {
+            double coolant = PartHandler.Core.Coolant;
+            if (coolant <= 0)
+            {
+                _messages.Add("[color=warn]Alert[/color]: No coolant remaining");
+            }
+            else
+            {
+                _messages.Add("[color=info]Info[/color]: Flushing coolant");
+                double coolantUsed = Math.Min(coolant, EngineConsts.COOL_USE_AMT);
+                CurrentHeat = Math.Max(CurrentHeat - coolantUsed * EngineConsts.COOL_POWER, 0);
+                PartHandler.Core.Coolant -= coolantUsed;
+            }
+        }
+
         internal void ProcessTick()
         {
             foreach (Part p in PartHandler)
@@ -227,6 +250,27 @@ namespace Mecurl.Actors
             }
 
             CurrentHeat = Math.Max(CurrentHeat, 0);
+
+            // heat damage
+            if (CurrentHeat > PartHandler.TotalHeatCapacity)
+            {
+                PartHandler.PartList.Random(Game.Rand).MatchSome(part =>
+                {
+                    // some damage computation here
+                    double damage = EngineConsts.HEAT_DAMAGE;
+                    part.Stability -= damage;
+                    _messages.Add($"[color=warn]Alert[/color]: {part.Name} took {damage} damage from overheating");
+
+                    if (part.Stability <= 0)
+                    {
+                        Game.MapHandler.RemoveFromMechTileMap(this);
+                        PartHandler.Remove(part);
+                        Game.MapHandler.AddToMechTileMap(this, Pos);
+
+                        _messages.Add($"[color=err]Warning[/color]: {part.Name} destroyed by heat");
+                    }
+                });
+            }
         }
 
         internal void UpdateHeat(double delta)

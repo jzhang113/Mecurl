@@ -1,4 +1,5 @@
 ﻿using Engine;
+using Mecurl.Actors;
 using Optional;
 
 namespace Mecurl.Commands
@@ -6,16 +7,17 @@ namespace Mecurl.Commands
     // Skip this turn
     internal class WaitCommand : ICommand
     {
-        public ISchedulable Source { get; }
         public int TimeCost { get; }
         public Option<IAnimation> Animation => Option.None<IAnimation>();
 
-        public WaitCommand(ISchedulable source)
+        public WaitCommand(Mech source)
         {
-            Source = source;
+            TimeCost = source.PartHandler.GetMoveSpeed();
+        }
 
-            // TODO: need a "smart" wait based on other nearby actors
-            TimeCost = EngineConsts.TURN_TICKS;
+        public WaitCommand(Mech source, int ticks)
+        {
+            TimeCost = ticks;
         }
 
         public Option<ICommand> Execute()

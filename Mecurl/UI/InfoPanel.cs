@@ -51,12 +51,14 @@ namespace Mecurl.UI
             layer.Print(y, "Energy");
             y++;
 
+            var core = player.PartHandler.Core;
+            int coolBarLength = (int)(layer.Width * core.Coolant / core.MaxCoolant);
             Terminal.Color(Color.LightSkyBlue);
             Terminal.Layer(1);
-            DrawBar(layer, 0, y, layer.Width, 0, '░');
+            DrawBar(layer, 0, y, coolBarLength, 0, '░');
 
             Terminal.Layer(2);
-            layer.Print(y, "Coolant");
+            layer.Print(y, $"Coolant");
             y++;
 
             Terminal.Color(Color.DarkOrange);
