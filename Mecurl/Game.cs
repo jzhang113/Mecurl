@@ -118,7 +118,7 @@ namespace Mecurl
                 missionInfo.MapHeight = Math.Min(80 + 25 * i, 200);
                 missionInfo.Difficulty = i + 1;
                 missionInfo.Enemies = i + 1;
-                missionInfo.RewardScrap = Rand.Next(30, 50) * 5 + Difficulty * 40;
+                missionInfo.RewardScrap = (int)(Rand.Next(30, 50) * EngineConsts.REPAIR_COST * (0.6 * Difficulty + 0.4));
                 missionInfo.RewardPart = PartFactory.BuildRandom();
                 _missions[i] = missionInfo;
             }

@@ -143,7 +143,7 @@ namespace Mecurl.State
                         double repairAmt = _selectedPart.MaxStability - _selectedPart.Stability;
                         double cost = Math.Min(Game.Scrap, EngineConsts.REPAIR_COST * repairAmt);
 
-                        if (Game.Scrap >= cost)
+                        if (Game.Scrap > cost)
                         {
                             Game.Scrap -= cost;
                             _selectedPart.Stability = _selectedPart.MaxStability;
@@ -291,7 +291,15 @@ namespace Mecurl.State
                     return;
                 case BuildState.AddSelect:
                     _selectedPart = Game.AvailParts[_addSelection];
-                    _bs = BuildState.Add;
+                    if (partHandler.Contains(_selectedPart))
+                    {
+                        _message = "Part is already added";
+                    }
+                    else
+                    {
+                        _message = "Place the part by pressing enter";
+                        _bs = BuildState.Add;
+                    }
                     return;
                 case BuildState.Add:
                     _selectedPart.Center = new Loc(_cursorX, _cursorY);
@@ -337,7 +345,9 @@ namespace Mecurl.State
                     GetCursorIntersect().MatchSome(part =>
                     {
                         if (part is Core)
-                            _message = "Cannot rotate core";
+                        {
+                            partHandler.RotateLeft();
+                        }
                         else
                         {
                             part.RotateLeft();

@@ -1,9 +1,6 @@
 ﻿using BearLib;
 using Engine;
 using Engine.Drawing;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Mecurl.UI
 {
@@ -27,7 +24,15 @@ namespace Mecurl.UI
             Terminal.Color(Colors.Text);
             layer.Print(0, "Objective");
             layer.Print(1, "─────────");
-            layer.Print(2, " none");
+
+            if (Game.NextMission.MissionType == MissionType.Elim)
+            {
+                layer.Print(2, $" {Game.MapHandler.Units.Count - 1} enemy remain");
+            }
+            else
+            {
+                layer.Print(2, " none");
+            }
         }
     }
 }
