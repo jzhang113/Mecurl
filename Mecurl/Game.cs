@@ -136,8 +136,6 @@ namespace Mecurl
             Scrap = 0;
             Difficulty = 0;
             Year = Game.Rand.Next(2100, 2200);
-
-            Player = new Player(new Loc(1, 1));
         }
 
         public static void NewMission(MissionInfo info)
@@ -172,15 +170,10 @@ namespace Mecurl
             Game.StateHandler.PushState(new MissionEndState(false));
         }
 
-        protected override void ProcessTickEvents()
+        protected override void ProcessPlayerTurnEvents()
         {
             var player = (Mech)Player;
             player.ProcessTick();
-
-            if (Player.DeathCheck())
-            {
-                player.TriggerDeath();
-            }
 
             WallWalk = false;
 

@@ -41,48 +41,68 @@ namespace Engine
             _schedule.Remove(unit);
         }
 
-        public void Update()
+        // update a single tick, returns true if we should process player input
+        public bool UpdateTick()
         {
-            bool done = false;
-            while (!done && _schedule.Count > 0)
-            {
-                foreach ((ISchedulable entity, int value) in _schedule.ToList())
-                {
-                    int timeTilAct = value - entity.Speed;
-                    if (timeTilAct <= 0)
-                    {
-                        if (entity.GetType() == _playerType)
-                        {
-                            Turn++;
-                            done = true;
-                        }
-                        else
-                        {
-                            ExecuteCommand(entity, entity.Act(), () => { });
+            if (_schedule.Count == 0) return true;
 
-                            // remove any events that have completed
-                            if (!(entity is BaseActor))
-                            {
-                                _schedule.Remove(entity);
-                            }
-                        }
+            bool playerCanAct = false;
+            foreach ((ISchedulable entity, int value) in _schedule.ToList())
+            {
+                int timeTilAct = value - entity.Speed;
+                _schedule[entity] = timeTilAct;
+
+                if (timeTilAct <= 0)
+                {
+                    if (entity.GetType() == _playerType)
+                    {
+                        Turn++;
+                        playerCanAct = true;
                     }
                     else
                     {
-                        _schedule[entity] = timeTilAct;
+                        ExecuteCommand(entity, entity.Act());
+
+                        // remove any events that have completed
+                        if (!(entity is BaseActor))
+                        {
+                            _schedule.Remove(entity);
+                        }
                     }
                 }
             }
+
+            return playerCanAct;
         }
 
-        internal void ExecuteCommand(ISchedulable entity, Option<ICommand> action, Action after)
+        // process events until something interesting is happening
+        public void FastForward()
+        {
+            if (_schedule.Count == 0) return;
+
+            var first = _schedule.First();
+            int minTurnsTilAct = first.Value / first.Key.Speed;
+
+            foreach ((ISchedulable entity, int ticks) in _schedule)
+            {
+                int turnsTilAct = ticks / entity.Speed;
+                minTurnsTilAct = Math.Min(turnsTilAct, minTurnsTilAct);
+            }
+
+            foreach ((ISchedulable entity, int ticks) in _schedule.ToList())
+            {
+                _schedule[entity] = ticks - entity.Speed * minTurnsTilAct;
+            }
+        }
+
+        internal void ExecuteCommand(ISchedulable entity, Option<ICommand> action)
         {
             action.MatchSome(command =>
             {
                 // note that Execute is allowed to modify TimeCost (which is necessary to detect
                 // some things like wall walking)
-                var retry = command.Execute();
-                var animation = command.Animation;
+                Option<ICommand> retry = command.Execute();
+                Option<IAnimation> animation = command.Animation;
                 int timeCost = command.TimeCost;
 
                 while (retry.HasValue)
@@ -101,18 +121,6 @@ namespace Engine
                 // events get a special id of -1 for animations
                 int animId = isEvent ? -1 : entity.Id;
                 animation.MatchSome(anim => _animationHandler.Add(animId, anim));
-
-                if (isEvent)
-                {
-                    Game.MapHandler.Refresh();
-
-                    if (Game.Player.DeathCheck())
-                    {
-                        Game.Player.TriggerDeath();
-                    }
-                }
-
-                after();
             });
         }
     }

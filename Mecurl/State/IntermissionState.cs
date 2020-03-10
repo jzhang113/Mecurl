@@ -271,6 +271,7 @@ namespace Mecurl.State
                         }
                         break;
                     case Terminal.TK_ENTER:
+                        if (_selectedIndex == -1) break;
                         PerformBuildAction();
                         break;
                 }
@@ -513,7 +514,7 @@ namespace Mecurl.State
                 var part = Game.AvailParts[i];
                 if (partsYPos + part.Height > partPanelHeight) break;
 
-                Terminal.Color(Game.Player.Color);
+                Terminal.Color(Colors.Player);
                 for (int x = 0; x < part.Bounds.Width; x++)
                 {
                     for (int y = 0; y < part.Bounds.Height; y++)

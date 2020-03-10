@@ -25,7 +25,7 @@
         // misc constants
         public const int MESSAGE_HISTORY_COUNT = 100;
         public const Measure MEASURE = Measure.Chebyshev;
-        public const int TURN_TICKS = 120;
+        public const int TURN_TICKS = 60;
 
         // game-specific constants
         internal const double HEAT_DAMAGE = 10;

@@ -11,7 +11,7 @@ namespace Mercurl.Animations
     internal class ExplosionAnimation : IAnimation
     {
         public int Turn { get; } = EventScheduler.Turn;
-        public TimeSpan Duration { get; } = Game.FrameRate * 12;
+        public TimeSpan Duration { get; } = TimeSpan.FromMilliseconds(600);
         public TimeSpan CurrentTime { get; private set; }
         public TimeSpan EndTime { get; }
 

@@ -1,5 +1,6 @@
 ﻿using BearLib;
 using Engine.Map;
+using Optional;
 using System;
 
 namespace Engine
@@ -15,8 +16,8 @@ namespace Engine
         public static Random Rand { get; }
         public static Random VisRand { get; }
 
-        internal TimeSpan Ticks;
-        internal static TimeSpan FrameRate = new TimeSpan(TimeSpan.TicksPerSecond / 30);
+        private const int updateLimit = 10;
+        private static readonly TimeSpan TickRate = new TimeSpan(TimeSpan.TicksPerSecond / 60);
 
         // HACK: how to communicate cancelled moved to the main loop?
         internal static bool PrevCancelled = false;
@@ -43,10 +44,9 @@ namespace Engine
         {
             DateTime currentTime = DateTime.UtcNow;
             var accum = new TimeSpan();
+            TimeSpan maxDt = TickRate * updateLimit;
 
-            const int updateLimit = 10;
-            TimeSpan maxDt = FrameRate * updateLimit;
-
+            bool playerTurn = false;
             while (!_exiting)
             {
                 DateTime newTime = DateTime.UtcNow;
@@ -59,28 +59,45 @@ namespace Engine
                 currentTime = newTime;
                 accum += frameTime;
 
-                while (accum >= FrameRate)
+                while (accum >= TickRate)
                 {
-                    EventScheduler.ExecuteCommand(Player, StateHandler.HandleInput(), () =>
-                    {
-                        if (!PrevCancelled)
-                        {
-                            ProcessTickEvents();
-                            MapHandler.Refresh();
-                            EventScheduler.Update();
-                        }
-                        else
-                        {
-                            PrevCancelled = false;
-                        }
-                    });
+                    accum -= TickRate;
 
-                    Ticks += FrameRate;
-                    accum -= FrameRate;
+                    if (!playerTurn)
+                    {
+                        EventScheduler.FastForward();
+                        playerTurn = EventScheduler.UpdateTick();
+
+                        // eat any input if its not the player's turn to act
+                        if (Terminal.HasInput())
+                        {
+                            Terminal.Read();
+                        }
+
+                        ProcessTurnEvents();
+                    }
+                    else
+                    {
+                        Option<ICommand> action = StateHandler.HandleInput();
+                        EventScheduler.ExecuteCommand(Player, action);
+
+                        action.MatchSome(_ =>
+                        {
+                            if (!PrevCancelled)
+                            {
+                                ProcessTurnEvents();
+                                ProcessPlayerTurnEvents();
+                                playerTurn = false;
+                            }
+                            else
+                            {
+                                PrevCancelled = false;
+                            }
+                        });
+                    }
                 }
 
-                double remaining = accum / FrameRate;
-
+                double remaining = accum / TickRate;
                 AnimationHandler.Update(frameTime, remaining);
                 Render();
             }
@@ -88,8 +105,22 @@ namespace Engine
             Terminal.Close();
         }
 
-        // Any events that should happen once per player turn (such as checking for player death)
-        protected abstract void ProcessTickEvents();
+        // general events that should run after any change to the world
+        protected virtual void ProcessTurnEvents()
+        {
+            if (MapHandler != null)
+            {
+                MapHandler.Refresh();
+            }
+
+            if (Player != null && Player.DeathCheck())
+            {
+                Player.TriggerDeath();
+            }
+        }
+
+        // events that run after the player has moved
+        protected abstract void ProcessPlayerTurnEvents();
 
         public abstract void Render();
     }

@@ -35,7 +35,7 @@ namespace Mecurl.Parts
             static ICommand attack(Mech m, IEnumerable<Loc> targets)
             {
                 var anim = Option.Some<IAnimation>(new ExplosionAnimation(targets, Colors.Fire));
-                return new DelayAttackCommand(240, new AttackCommand(m, EngineConsts.TURN_TICKS, 10, targets, anim));
+                return new DelayAttackCommand(EngineConsts.TURN_TICKS * 2, new AttackCommand(m, EngineConsts.TURN_TICKS, 10, targets, anim));
             }
 
             return new Weapon(3, 3, pos, initialFacing, tiles, 50,
@@ -62,7 +62,7 @@ namespace Mecurl.Parts
         {
             static ICommand attack(Mech m, IEnumerable<Loc> targets)
             {
-                var anim = Option.Some<IAnimation>(new ExplosionAnimation(targets, Colors.Fire));
+                var anim = Option.Some<IAnimation>(new FlashAnimation(targets, Colors.Fire));
                 return new DelayAttackCommand(10, new AttackCommand(m, EngineConsts.TURN_TICKS, 10, targets, anim, true));
             }
 
@@ -147,7 +147,7 @@ namespace Mecurl.Parts
 
             return new Part(1, 2, pos, Direction.N,
                 new RotateChar[2] { arn, arn }, 30)
-            { Name = "Leg", SpeedDelta = -30 };
+            { Name = "Leg", SpeedDelta = -15 };
         }
 
 
