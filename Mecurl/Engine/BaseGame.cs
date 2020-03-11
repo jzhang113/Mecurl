@@ -11,7 +11,7 @@ namespace Engine
         public static StateHandler StateHandler { get; protected set; }
         public static EventScheduler EventScheduler { get; protected set; }
         public static AnimationHandler AnimationHandler { get; protected set; }
-        public static BaseActor Player { get; protected set; }
+        public static BaseActor Player { get; internal set; }
 
         public static Random Rand { get; }
         public static Random VisRand { get; }

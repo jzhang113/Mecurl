@@ -11,9 +11,6 @@ namespace Engine.Map
         protected Random Rand { get; }
         protected MapHandler Map { get; }
 
-        protected IList<Room> RoomList { get; set; }
-        protected ICollection<int>[] Adjacency { get; set; }
-
         protected MapGenerator(int width, int height, int level, Random random)
         {
             Width = width;

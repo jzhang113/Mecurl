@@ -11,11 +11,7 @@ namespace Mecurl.CityGen
 {
     public class CityMapgen : MapGenerator
     {
-        private MissionInfo _missionInfo;
-
-        public CityMapgen(int width, int height, int level) : base(width, height, level, Game.Rand)
-        {
-        }
+        private readonly MissionInfo _missionInfo;
 
         public CityMapgen(MissionInfo info) : base(info.MapWidth, info.MapHeight, info.Difficulty, Game.Rand)
         {
@@ -206,7 +202,7 @@ namespace Mecurl.CityGen
             }
         }
 
-        private void BuildMissileMech(Mech mech)
+        private PartHandler BuildMissileMech()
         {
             Core core = PartFactory.BuildSmallCore();
 
@@ -227,11 +223,10 @@ namespace Mecurl.CityGen
 
             ph.WeaponGroup.Add(w1, 0);
             ph.WeaponGroup.Add(w2, 0);
-
-            mech.PartHandler = ph;
+            return ph;
         }
 
-        private void BuildLaserMech(Mech mech)
+        private PartHandler BuildLaserMech()
         {
             Core core = PartFactory.BuildSmallCore();
 
@@ -256,11 +251,10 @@ namespace Mecurl.CityGen
 
             ph.WeaponGroup.Add(w1, 0);
             ph.WeaponGroup.Add(w2, 0);
-
-            mech.PartHandler = ph;
+            return ph;
         }
 
-        private void BuildSniperMech(Mech mech)
+        private PartHandler BuildSniperMech()
         {
             Core core = PartFactory.BuildSmallCore();
 
@@ -285,37 +279,37 @@ namespace Mecurl.CityGen
             };
 
             ph.WeaponGroup.Add(w1, 0);
-
-            mech.PartHandler = ph;
+            return ph;
         }
 
         protected override void PlaceActors()
         {
             for (int i = 0; i < _missionInfo.Enemies; i++)
             {
-                var m = new Mech(new Loc(1,1), 100, 'x', Color.Red);
-
-                double chance = Game.Rand.NextDouble();
+                double chance = Rand.NextDouble();
+                PartHandler ph;
                 if (chance < 0.5)
                 {
-                    BuildMissileMech(m);
+                    ph = BuildMissileMech();
                 }
                 else if (chance < 0.8)
                 {
-                    BuildLaserMech(m);
+                    ph = BuildLaserMech();
                 }
                 else
                 {
-                    BuildSniperMech(m);
+                    ph = BuildSniperMech();
                 }
 
+                var m = new Mech(new Loc(1,1), 'x', Color.Red, Map, ph);
                 m.Pos = ForcePlaceActor(m.PartHandler.Bounds);
 
                 Map.AddActor(m);
             }
 
             // find a sufficiently large place to place the mech
-            Rectangle playerBounds = ((Mech)Game.Player).PartHandler.Bounds;
+            var player = new Player(new Loc(1, 1), Map, Game.Blueprint);
+            Rectangle playerBounds = player.PartHandler.Bounds;
             int minClearance = Math.Max(playerBounds.Width, playerBounds.Height);
 
             Map.GetRandomOpenPoint(minClearance, 50).Match(
@@ -323,14 +317,15 @@ namespace Mecurl.CityGen
                 {
                     // adjust the player position so that the top left corner of playerBounds is on
                     // the returned position
-                    Game.Player.Pos = new Loc(pos.X - playerBounds.Left, pos.Y - playerBounds.Top);
+                    player.Pos = new Loc(pos.X - playerBounds.Left, pos.Y - playerBounds.Top);
                 },
                 none: () =>
                 {
-                    Game.Player.Pos = ForcePlaceActor(playerBounds);
+                    player.Pos = ForcePlaceActor(playerBounds);
                 });
 
-            Map.AddActor(Game.Player);
+            Map.AddActor(player);
+            Game.Player = player;
         }
 
         private Loc ForcePlaceActor(Rectangle playerBounds)

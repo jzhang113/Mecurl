@@ -1,11 +1,13 @@
 ﻿using Engine;
+using Engine.Map;
+using Mecurl.Parts;
 using Optional;
 
 namespace Mecurl.Actors
 {
     public class Player : Mech
     {
-        public Player(in Loc pos) : base(pos, 100, '@', Colors.Player)
+        public Player(in Loc pos, MapHandler map, PartHandler partHandler) : base(pos, '@', Colors.Player, map, partHandler)
         {
             Name = "Player";
             _messages = Game.MessagePanel;

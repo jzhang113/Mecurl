@@ -1,15 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Mecurl
 {
     class Program
     {
-        public static void Main(String[] args)
+        public static void Main(string[] _)
         {
             Game g = new Game();
-            g.Start();
+            g.Run();
         }
     }
 }

@@ -16,12 +16,12 @@ namespace Mecurl
     {
         public static MessagePanel MessagePanel { get; private set; }
 
-        private static LayerInfo _mapLayer;
-        private static LayerInfo _infoLayer;
-        private static LayerInfo _radarLayer;
-        private static LayerInfo _objectiveLayer;
-        private static LayerInfo _messageLayer;
-        private static LayerInfo _mainLayer;
+        private readonly LayerInfo _mapLayer;
+        private readonly LayerInfo _infoLayer;
+        private readonly LayerInfo _radarLayer;
+        private readonly LayerInfo _objectiveLayer;
+        private readonly LayerInfo _messageLayer;
+        private readonly LayerInfo _mainLayer;
 
         private static MissionInfo[] _missions;
 
@@ -72,9 +72,10 @@ namespace Mecurl
             EventScheduler = new EventScheduler(typeof(Player), AnimationHandler);
 
             Reset();
+            ConfigureTerminal();
         }
 
-        public void Start()
+        private void ConfigureTerminal()
         {
             Terminal.Open();
             Terminal.Set(
@@ -95,7 +96,6 @@ namespace Mecurl
             Terminal.Set("0xE013: FontTiles/trw.png, size = 12x12, transparent=black");
 
             Terminal.Refresh();
-            Run();
         }
 
         public static MissionInfo GenerateMission()
@@ -145,14 +145,10 @@ namespace Mecurl
 
             SetupLevel(info);
             StateHandler.PushState(NormalState.Instance);
-            _mainLayer.Clear();
         }
 
         internal static void SetupLevel(MissionInfo info)
         {
-            Player = new Player(new Loc(1, 1));
-            ((Mech)Player).PartHandler = Blueprint;
-
             AnimationHandler.Clear();
             EventScheduler.Clear();
 

@@ -1,6 +1,7 @@
 ﻿using BearLib;
 using Engine;
 using Engine.Drawing;
+using Engine.Map;
 using Mecurl.Commands;
 using Mecurl.Engine;
 using Mecurl.Parts;
@@ -22,24 +23,27 @@ namespace Mecurl.Actors
         public Direction Facing => PartHandler.Facing;
 
         protected IMessageHandler _messages;
+        protected MapHandler _map;
 
-        public Mech(in Loc pos, int hp, char symbol, Color color) : base(pos, hp, symbol, color)
+        public Mech(in Loc pos, char symbol, Color color, MapHandler map, PartHandler partHandler) : base(pos, 100, symbol, color)
         {
             Name = "Mech";
+            PartHandler = partHandler;
             CurrentHeat = 0;
-            Awareness = 30;
+            Awareness = 40;
 
             _messages = new DummyMessageHandler();
+            _map = map;
         }
 
         public override Option<ICommand> TriggerDeath()
         {
-            Game.MapHandler.RemoveActor(this);
+            _map.RemoveActor(this);
 
-            if (Game.MapHandler.Field[Pos].IsVisible)
+            if (_map.Field[Pos].IsVisible)
             {
                 Game.MessagePanel.Add($"[color=info]Info[/color]: {Name} destroyed");
-                Game.MapHandler.Refresh();
+                _map.Refresh();
             }
 
             return Option.None<ICommand>();
@@ -62,7 +66,6 @@ namespace Mecurl.Actors
             // 3. running away (weapons on cooldown)
             // 4. wander
 
-            var map = Game.MapHandler;
             var groupn = new int[] { 1, 2, 3, 4, 5, 6 };
             (int firstn, _) = groupn
                 .Select(n => (n, PartHandler.WeaponGroup.CanFireGroup(n - 1)))
@@ -75,12 +78,12 @@ namespace Mecurl.Actors
                 if (attack.HasValue) return attack;
                      
                 // we have weapons, look for enemies
-                if (map.PlayerMap[Pos.X, Pos.Y] < Awareness)
+                if (_map.PlayerMap[Pos.X, Pos.Y] < Awareness)
                 {
                     Direction dir = Distance.GetNearestDirection(Game.Player.Pos, Pos);
                     if (dir == Facing || dir == Facing.Left() || dir == Facing.Right())
                     {
-                        LocCost move = map.MoveTowardsTarget(Pos, map.PlayerMap, Measure.Euclidean);
+                        LocCost move = _map.MoveTowardsTarget(Pos, _map.PlayerMap, Measure.Euclidean);
                         return Option.Some<ICommand>(new MoveCommand(this, move.Loc));
                     }
                     else
@@ -91,7 +94,7 @@ namespace Mecurl.Actors
                 else
                 {
                     // no nearby enemies, wander
-                    ICommand command = map.GetPointsInRadius(Pos, 1, Measure.Euclidean)
+                    ICommand command = _map.GetPointsInRadius(Pos, 1, Measure.Euclidean)
                         .Random(Game.Rand)
                         .Match<ICommand>(
                             some: pos => new MoveCommand(this, pos),
@@ -103,11 +106,11 @@ namespace Mecurl.Actors
             else
             {
                 // we don't have weapons, are we in danger?
-                if (map.PlayerMap[Pos.X, Pos.Y] < Awareness)
+                if (_map.PlayerMap[Pos.X, Pos.Y] < Awareness)
                 {
                     int maxDist = 0;
                     Loc maxLoc = Pos;
-                    foreach (Loc loc in map.GetPointsInRadius(Pos, 1, Measure.Euclidean))
+                    foreach (Loc loc in _map.GetPointsInRadius(Pos, 1, Measure.Euclidean))
                     {
                         var dist = Distance.EuclideanSquared(loc, Game.Player.Pos);
                         if (dist > maxDist)
@@ -121,7 +124,7 @@ namespace Mecurl.Actors
                 }
                 else
                 {
-                    ICommand command = map.GetPointsInRadius(Pos, 1, Measure.Euclidean)
+                    ICommand command = _map.GetPointsInRadius(Pos, 1, Measure.Euclidean)
                         .Random(Game.Rand)
                         .Match<ICommand>(
                             some: pos => new MoveCommand(this, pos),

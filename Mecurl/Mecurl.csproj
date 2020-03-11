@@ -6,6 +6,10 @@
     <ApplicationIcon />
     <StartupObject />
   </PropertyGroup>
+  
+  <PropertyGroup>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="OptimizedPriorityQueue" Version="4.2.0" />

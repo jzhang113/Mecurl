@@ -42,13 +42,12 @@
         public override string ToString() => $"({X}, {Y})";
 
         #region equality
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
-            if (!(obj is Loc))
-                return false;
+            if (obj == null) return false;
+            if (!(obj is Loc loc)) return false;
 
-            var location = (Loc)obj;
-            return X == location.X && Y == location.Y;
+            return X == loc.X && Y == loc.Y;
         }
 
         public override int GetHashCode()
