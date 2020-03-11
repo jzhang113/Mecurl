@@ -3,8 +3,8 @@ using Engine;
 using Engine.Drawing;
 using Mecurl.Actors;
 using Mecurl.Parts;
+using Mecurl.Parts.Components;
 using RexTools;
-using System;
 using System.Collections.Generic;
 using System.Drawing;
 
@@ -51,8 +51,8 @@ namespace Mecurl.UI
             layer.Print(y, "Energy");
             y++;
 
-            var core = player.PartHandler.Core;
-            int coolBarLength = (int)(layer.Width * core.Coolant / core.MaxCoolant);
+            var ph = player.PartHandler;
+            int coolBarLength = (int)(layer.Width * ph.Coolant / ph.GetMaxCoolant());
             Terminal.Color(Color.LightSkyBlue);
             Terminal.Layer(1);
             DrawBar(layer, 0, y, coolBarLength, 0, '░');
@@ -72,7 +72,7 @@ namespace Mecurl.UI
             foreach (Part p in player.PartHandler)
             {
                 // Ignore weapons for now - we draw them with their weapon groups
-                if (p is Weapon) continue;
+                if (p.Has<ActivateComponent>()) continue;
 
                 Terminal.Color(Colors.Text);
                 Terminal.Layer(1);
@@ -90,13 +90,13 @@ namespace Mecurl.UI
             WeaponGroup wg = player.PartHandler.WeaponGroup;
             for (int i = 0; i < wg.Groups.Length; i++)
             {
-                List<Weapon> group = wg.Groups[i];
+                List<Part> group = wg.Groups[i];
                 if (group.Count == 0) continue;
 
                 Terminal.Color(golden);
                 layer.Print(y++, $"Weapon Group {i + 1}");
                 layer.Print(y++, $"────────────────────");
-                var currWeaponIndex = wg.NextIndex(i);
+                int currWeaponIndex = wg.NextIndex(i);
 
                 for (int j = 0; j < group.Count; j++)
                 {
@@ -104,65 +104,78 @@ namespace Mecurl.UI
                     // we just truncate and not worry about it for now
                     if (y + 6 > layer.Height) break;
 
-                    Weapon w = group[j];
-                    double cooldown = layer.Width - layer.Width * w.CurrentCooldown / w.Cooldown;
-
-                    if (w.CurrentCooldown == 0)
+                    Part p = group[j];
+                    p.Get<ActivateComponent>().MatchSome(w =>
                     {
-                        Terminal.Color(brightGreen);
-                    }
-                    else
-                    {
-                        Terminal.Color(Color.LightGreen.Blend(Color.LightSalmon, 1 - cooldown / layer.Width));
-                    }
+                        double cooldown = layer.Width - layer.Width * w.CurrentCooldown / w.Cooldown;
 
-                    if (currWeaponIndex == j)
-                    {
-                        layer.Put(0, y, 0xE011);
-                    }
+                        if (w.CurrentCooldown == 0)
+                        {
+                            Terminal.Color(brightGreen);
+                        }
+                        else
+                        {
+                            Terminal.Color(Color.LightGreen.Blend(Color.LightSalmon, 1 - cooldown / layer.Width));
+                        }
 
-                    Terminal.Layer(1);
-                    DrawBar(layer, 1, y, cooldown - 1, 0, '░');
+                        if (currWeaponIndex == j)
+                        {
+                            layer.Put(0, y, 0xE011);
+                        }
 
-                    Terminal.Layer(2);
-                    layer.Print(1, y++, w.Name);
-                    Terminal.Layer(1);
+                        Terminal.Layer(1);
+                        DrawBar(layer, 1, y, cooldown - 1, 0, '░');
 
-                    y++;
-                    y = DrawPart(layer, y, w);
-                    y++;
+                        Terminal.Layer(2);
+                        layer.Print(1, y++, p.Name);
+                        Terminal.Layer(1);
+
+                        y++;
+                        y = DrawPart(layer, y, p);
+                        y++;
+                    });
                 }
             }
         }
 
-        private static int DrawPart(LayerInfo layer, int y, Part p)
+        private static int DrawPart(LayerInfo layer, int yStart, Part p)
         {
-            //Terminal.Color(Color.White);
-            layer.Print(1, y, $"Stab:{(int)(p.Stability / p.MaxStability * 100)}%");
+            p.Get<StabilityComponent>().Match(
+                some: comp =>
+                {
+                    int percentage = (int)(comp.Stability / comp.MaxStability * 100);
+                    layer.Print(1, yStart, $"Stab:{percentage}%");
+                },
+                none: () =>
+                {
+                    layer.Print(1, yStart, $"Stab:-");
+                });
 
-            if (p.Cooldown > 0)
-            {
-                layer.Print(1, y + 1, $"Rchg:{p.CurrentCooldown}");
-            }
-            else
-            {
-                layer.Print(1, y + 1, $"Rchg:-");
-            }
+            p.Get<ActivateComponent>().Match(
+                some: comp =>
+                {
+                    layer.Print(1, yStart + 1, $"Rchg:{comp.CurrentCooldown}");
+                },
+                none: () =>
+                {
+                    layer.Print(1, yStart + 1, $"Rchg:-");
+                });
 
-            if (p is Weapon)
-            {
-                layer.Print(1, y + 2, $"Ammo:{1000}");
-            }
-            else
-            {
-                layer.Print(1, y + 2, $"Ammo:-");
-            }
+            p.Get<AmmoComponent>().Match(
+                some: comp =>
+                {
+                    layer.Print(1, yStart + 2, $"Ammo:{comp.Remaining}");
+                },
+                none: () =>
+                {
+                    layer.Print(1, yStart + 2, $"Ammo:-");
+                });
 
             TileMap img = p.Art ?? placeholder;
-            DrawTileMap(layer, layer.Width - img.Width, y, img);
-            y += img.Height;
+            DrawTileMap(layer, layer.Width - img.Width, yStart, img);
+            yStart += img.Height;
 
-            return y;
+            return yStart;
         }
 
         private static void DrawTileMap(LayerInfo layer, int x, int y, TileMap tileMap)
@@ -171,8 +184,8 @@ namespace Mecurl.UI
             {
                 for (int ay = 0; ay < tileMap.Height; ay++)
                 {
-                    var tile = tileMap.Layers[0].Tiles[ay, ax];
-                    Color color = Color.FromArgb(tile.ForegroundRed, tile.ForegroundGreen, tile.ForegroundBlue);
+                    Tile tile = tileMap.Layers[0].Tiles[ay, ax];
+                    var color = Color.FromArgb(tile.ForegroundRed, tile.ForegroundGreen, tile.ForegroundBlue);
 
                     Terminal.Layer(1);
                     Terminal.Color(color);

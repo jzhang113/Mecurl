@@ -1,6 +1,9 @@
 ﻿using Engine;
 using Engine.Drawing;
+using Mecurl.Parts.Components;
+using Optional;
 using RexTools;
+using System.Collections.Generic;
 using System.Drawing;
 
 namespace Mecurl.Parts
@@ -8,47 +11,89 @@ namespace Mecurl.Parts
     public class Part
     {
         internal static int GlobalId = 0;
+
         internal int Id { get; }
 
         public string Name { get; set; }
-        public double MaxStability { get; set; }
-        public double Stability { get; set; }
         public TileMap Art { get; set; }
-
-        public double HeatGenerated { get; internal set; }
-        public double HeatCapacity { get; internal set; }
-        public double HeatRemoved { get; internal set; }
-        public int SpeedDelta { get; internal set; }
-
-        public int Cooldown { get; set; }
-        internal int CurrentCooldown { get; set; }
 
         public RotateChar[] Structure { get; }
         public int Width { get; }
         public int Height { get; }
 
-        public Direction Facing { get; private set; }
-        public Loc Center { get; internal set; }
         public Rectangle Bounds { get; private set; }
-  
+        public Direction Facing { get; private set; }
+        public Loc Center
+        {
+            get => _center;
+            internal set
+            {
+                _center = value;
+                UpdateBounds();
+            }
+        }
+
+        private readonly IList<IPartComponent> _components;
+
+        private Loc _center;
         internal bool Invalid { get; set; }
 
-        public Part(int width, int height, Loc center, Direction facing, RotateChar[] structure, double stability)
+        public Part(string name, int width, int height, RotateChar[] structure, Direction facing = Direction.N)
         {
             Id = GlobalId++;
             Structure = structure;
 
+            Name = name;
             Width = width;
             Height = height;
-            Center = center;
+
+            _center = new Loc(0, 0);
             Facing = facing;
             UpdateBounds();
 
-            MaxStability = stability;
-            Stability = stability;
+            Invalid = false;
+
+            _components = new List<IPartComponent>();
         }
 
-        internal void UpdateBounds()
+        #region Managing components
+        public bool Add<T>(T component) where T : IPartComponent
+        {
+            if (Has<T>()) return false;
+
+            _components.Add(component);
+            return true;
+        }
+
+        public bool Has<T>()
+        {
+            foreach (IPartComponent comp in _components)
+            {
+                if (comp.GetType() == typeof(T))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        public Option<T> Get<T>()
+        {
+            foreach (IPartComponent comp in _components)
+            {
+                if (comp.GetType() == typeof(T))
+                {
+                    return Option.Some((T)comp);
+                }
+            }
+
+            return Option.None<T>();
+        }
+        #endregion
+
+        #region Facing
+        private void UpdateBounds()
         {
             if (Facing == Direction.N || Facing == Direction.S)
             {
@@ -63,7 +108,7 @@ namespace Mecurl.Parts
         internal void RotateLeft()
         {
             Facing = Facing.Left().Left();
-            Center = new Loc(Center.Y, -Center.X);
+            _center = new Loc(Center.Y, -Center.X);
             Bounds = Rectangle.FromLTRB(Bounds.Top, -Bounds.Right + 1, Bounds.Bottom, -Bounds.Left + 1);
 
             for (int i = 0; i < Structure.Length; i++)
@@ -75,7 +120,7 @@ namespace Mecurl.Parts
         internal void RotateRight()
         {
             Facing = Facing.Right().Right();
-            Center = new Loc(-Center.Y, Center.X);
+            _center = new Loc(-Center.Y, Center.X);
             Bounds = Rectangle.FromLTRB(-Bounds.Bottom + 1, Bounds.Left, -Bounds.Top + 1, Bounds.Right);
 
             for (int i = 0; i < Structure.Length; i++)
@@ -83,6 +128,7 @@ namespace Mecurl.Parts
                 Structure[i] = Structure[i].Right;
             }
         }
+        #endregion
 
         internal bool IsPassable(int x)
         {

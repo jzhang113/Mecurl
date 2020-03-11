@@ -2,6 +2,7 @@
 using Engine;
 using Engine.Drawing;
 using Mecurl.Parts;
+using Mecurl.Parts.Components;
 using Optional;
 using System;
 using System.Collections.Generic;
@@ -49,9 +50,9 @@ namespace Mecurl.State
                 }
             }
 
-            Core core = Game.AvailCores[0];
-            var w1 = Game.AvailParts[0];
-            var w2 = Game.AvailParts[1];
+            Part core = Game.AvailCores[0];
+            Part w1 = Game.AvailParts[0];
+            Part w2 = Game.AvailParts[1];
 
             var ph = new PartHandler
             {
@@ -62,8 +63,8 @@ namespace Mecurl.State
             {
                 ph.Add(Game.AvailParts[i]);
             }
-            ph.WeaponGroup.Add((Weapon)w1, 0);
-            ph.WeaponGroup.Add((Weapon)w2, 0);
+            ph.WeaponGroup.Add(w1, 0);
+            ph.WeaponGroup.Add(w2, 0);
 
             _hangar.Add(ph);
 
@@ -140,22 +141,30 @@ namespace Mecurl.State
                 {
                     if (key == Terminal.TK_Y || key == Terminal.TK_ENTER)
                     {
-                        double repairAmt = _selectedPart.MaxStability - _selectedPart.Stability;
-                        double cost = Math.Min(Game.Scrap, EngineConsts.REPAIR_COST * repairAmt);
+                        _selectedPart.Get<StabilityComponent>().Match(
+                            some: comp =>
+                            {
+                                double repairAmt = comp.MaxStability - comp.Stability;
+                                double cost = Math.Min(Game.Scrap, EngineConsts.REPAIR_COST * repairAmt);
 
-                        if (Game.Scrap > cost)
-                        {
-                            Game.Scrap -= cost;
-                            _selectedPart.Stability = _selectedPart.MaxStability;
-                        }
-                        else
-                        {
-                            double actualRepaired = cost / EngineConsts.REPAIR_COST;
-                            _selectedPart.Stability += actualRepaired;
-                            Game.Scrap = 0;
-                        }
+                                if (Game.Scrap > cost)
+                                {
+                                    Game.Scrap -= cost;
+                                    comp.Stability = comp.MaxStability;
+                                }
+                                else
+                                {
+                                    double actualRepaired = cost / EngineConsts.REPAIR_COST;
+                                    comp.Stability += actualRepaired;
+                                    Game.Scrap = 0;
+                                }
 
-                        _message = $"{_selectedPart.Name} repaired";
+                                _message = $"{_selectedPart.Name} repaired";
+                            },
+                            none: () =>
+                            {
+                                _message = $"Couldn't repair {_selectedPart.Name}";
+                            });
                     }
                     else
                     {
@@ -170,7 +179,7 @@ namespace Mecurl.State
                     int num = key - Terminal.TK_1;
                     if (num >= 0 && num <= 5)
                     {
-                        _hangar[_selectedIndex].WeaponGroup.Reassign((Weapon)_selectedPart, num);
+                        _hangar[_selectedIndex].WeaponGroup.Reassign(_selectedPart, num);
                         _message = $"{_selectedPart.Name} assigned to weapon group {num + 1}";
                     }
                     else
@@ -285,7 +294,7 @@ namespace Mecurl.State
 
         private void PerformBuildAction()
         {
-            var partHandler = _hangar[_selectedIndex];
+            PartHandler partHandler = _hangar[_selectedIndex];
             switch (_bs)
             {
                 case BuildState.None:
@@ -304,11 +313,10 @@ namespace Mecurl.State
                     return;
                 case BuildState.Add:
                     _selectedPart.Center = new Loc(_cursorX, _cursorY);
-                    _selectedPart.UpdateBounds();
                     partHandler.Add(_selectedPart);
-                    if (_selectedPart is Weapon w)
+                    if (_selectedPart.Has<ActivateComponent>())
                     {
-                        partHandler.WeaponGroup.Add(w, 0);
+                        partHandler.WeaponGroup.Add(_selectedPart, 0);
                     }
                     _bs = BuildState.None;
                     partHandler.Validate();
@@ -316,7 +324,7 @@ namespace Mecurl.State
                 case BuildState.Remove:
                     GetCursorIntersect().MatchSome(part =>
                     {
-                        if (part is Core)
+                        if (part.Has<CoreComponent>())
                             _message = "Cannot remove core";
                         else
                             partHandler.Remove(part);
@@ -325,7 +333,7 @@ namespace Mecurl.State
                 case BuildState.Move:
                     GetCursorIntersect().MatchSome(part =>
                     {
-                        if (part is Core)
+                        if (part.Has<CoreComponent>())
                             _message = "Cannot move core";
                         else
                         {
@@ -338,14 +346,13 @@ namespace Mecurl.State
                     int dx = _cursorX - _prevCursor.Item1;
                     int dy = _cursorY - _prevCursor.Item2;
                     _selectedPart.Center += new Loc(dx, dy);
-                    _selectedPart.UpdateBounds();
                     _bs = BuildState.None;
                     partHandler.Validate();
                     return;
                 case BuildState.Rotate:
                     GetCursorIntersect().MatchSome(part =>
                     {
-                        if (part is Core)
+                        if (part.Get<CoreComponent>().HasValue)
                         {
                             partHandler.RotateLeft();
                         }
@@ -359,23 +366,31 @@ namespace Mecurl.State
                 case BuildState.Repair:
                     GetCursorIntersect().MatchSome(part =>
                     {
-                        double repairAmt = part.MaxStability - part.Stability;
-                        if (repairAmt == 0)
-                        {
-                            _message = $"{part.Name} doesn't need repairs";
-                        }
-                        else
-                        {
-                            double cost = Math.Min(Game.Scrap, EngineConsts.REPAIR_COST * repairAmt);
-                            _message = $"Spend {cost} to repair {part.Name}?";
-                            _bs = BuildState.RepairConfirm;
-                        }
+                        part.Get<StabilityComponent>().Match(
+                            some: comp =>
+                            {
+                                double repairAmt = comp.MaxStability - comp.Stability;
+                                if (repairAmt == 0)
+                                {
+                                    _message = $"{part.Name} doesn't need repairs";
+                                }
+                                else
+                                {
+                                    double cost = Math.Min(Game.Scrap, EngineConsts.REPAIR_COST * repairAmt);
+                                    _message = $"Spend {cost} to repair {part.Name}?";
+                                    _bs = BuildState.RepairConfirm;
+                                }
+                            },
+                            none: () =>
+                            {
+                                _message = $"{part.Name} doesn't need repairs";
+                            });
                     });
                     return;
                 case BuildState.AssignGroup:
                     GetCursorIntersect().MatchSome(part =>
                     {
-                        if (part is Weapon w)
+                        if (part.Has<ActivateComponent>())
                         {
                             _message = $"Assign {part.Name} to which weapon group";
                             _bs = BuildState.AssignGroupConfirm;
@@ -451,7 +466,7 @@ namespace Mecurl.State
                 double dispWidth = (double)corePanelWidth / dispCores;
                 int xPos = infoBorderX + 1 + (int)(i * dispWidth);
 
-                var core = Game.AvailCores[i];
+                Part core = Game.AvailCores[i];
                 int yOffset = (corePanelHeight - core.Height) / 2;
 
                 for (int x = 0; x < core.Bounds.Width; x++)
@@ -483,20 +498,35 @@ namespace Mecurl.State
             {
                 layer.Print(1, 4, "General Data");
                 layer.Print(2, 6, $"{_selectedPart.Name}");
-                layer.Print(2, 7, $"Stability: {_selectedPart.Stability} / {_selectedPart.MaxStability} ");
-                layer.Print(2, 8, $"Speed: {-_selectedPart.SpeedDelta} ");
-                layer.Print(2, 9, $"Heat Capacity: {_selectedPart.HeatCapacity} ");
-                layer.Print(2, 10, $"Heat Generated: {_selectedPart.HeatGenerated} ");
-                layer.Print(2, 11, $"Heat Removed: {_selectedPart.HeatRemoved} ");
 
-                if (_selectedPart is Weapon w)
+                int y = 7;
+                _selectedPart.Get<StabilityComponent>().MatchSome(comp =>
                 {
-                    layer.Print(1, 13, "Weapon Data");
-                    layer.Print(2, 15, $"Range: {w.Target.Range}");
-                    layer.Print(2, 16, $"Radius: {w.Target.Radius}");
-                    layer.Print(2, 17, $"Shape: {w.Target.Shape}");
-                    layer.Print(2, 18, $"Weapon Group: {w.Group + 1}");
-                }
+                    layer.Print(2, y++, $"Stability: {comp.Stability} / {comp.MaxStability}");
+                });
+
+                _selectedPart.Get<SpeedComponent>().MatchSome(comp =>
+                {
+                    layer.Print(2, y++, $"Speed: {-comp.SpeedDelta}");
+                });
+
+                _selectedPart.Get<HeatComponent>().MatchSome(comp =>
+                {
+                    layer.Print(2, y++, $"Heat Capacity: {comp.HeatCapacity}");
+                    layer.Print(2, y++, $"Heat Generated: {comp.HeatGenerated}");
+                    layer.Print(2, y++, $"Heat Removed: {comp.HeatRemoved}");
+                    layer.Print(2, y++, $"Coolant: {comp.MaxCoolant}");
+                });
+
+                _selectedPart.Get<ActivateComponent>().MatchSome(comp =>
+                {
+                    y++;
+                    layer.Print(1, y++, "Weapon Data");
+                    layer.Print(2, y++, $"Range: {comp.Target.Range}");
+                    layer.Print(2, y++, $"Radius: {comp.Target.Radius}");
+                    layer.Print(2, y++, $"Shape: {comp.Target.Shape}");
+                    layer.Print(2, y++, $"Weapon Group: {comp.Group + 1}");
+                });
             }
 
             layer.Print(1, buttonBorderY - 1, $"Scrap: {Game.Scrap}");
@@ -511,7 +541,7 @@ namespace Mecurl.State
 
             for (int i = 0; i < partCount; i++)
             {
-                var part = Game.AvailParts[i];
+                Part part = Game.AvailParts[i];
                 if (partsYPos + part.Height > partPanelHeight) break;
 
                 Terminal.Color(Colors.Player);
@@ -533,7 +563,7 @@ namespace Mecurl.State
             // build window
             if (_selectedIndex != -1)
             {
-                var ph = _hangar[_selectedIndex];
+                PartHandler ph = _hangar[_selectedIndex];
 
                 Terminal.Layer(2);
                 foreach (Part part in ph)
@@ -701,10 +731,10 @@ namespace Mecurl.State
             layer.Print(briefingBorderX + 1, 30, "Objectives");
             layer.Print(briefingBorderX + 1, 31, "──────────");
 
-            string objectiveString = Game.NextMission.MissionType switch
+            string objectiveString = "None";
+            switch (Game.NextMission.MissionType)
             {
-                MissionType.Elim => "Eliminate all enemies",
-                _ => "None",
+                case MissionType.Elim: objectiveString = "Eliminate all enemies"; break;
             };
             if (Game.Difficulty >= 5)
                 objectiveString = "None";

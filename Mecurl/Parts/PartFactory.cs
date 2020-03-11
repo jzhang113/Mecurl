@@ -1,6 +1,7 @@
 ﻿using Engine;
 using Mecurl.Actors;
 using Mecurl.Commands;
+using Mecurl.Parts.Components;
 using Mercurl.Animations;
 using Optional;
 using RexTools;
@@ -21,101 +22,131 @@ namespace Mecurl.Parts
             _missileArt = reader.GetMap();
         }
 
-        internal static Weapon BuildSmallMissile(bool left)
+        internal static Part BuildSmallMissile(bool left)
         {
-            var initialFacing = Direction.N;
-
             string name = left ? "Missiles (Left)" : "Missiles (Right)";
-            RotateChar[] tiles = left ?
+            var pos = left ? new Loc(-2, 2) : new Loc(2, 2);
+            var tiles = left ?
                 new RotateChar[9] { b2, b4, sl, b2, b4, b4, sl, b2, b2 } :
-                       new RotateChar[9] { sr, b4, b2, b4, b4, b2, b2, b2, sr };
+                new RotateChar[9] { sr, b4, b2, b4, b4, b2, b2, b2, sr };
 
-            Loc pos = left ? new Loc(-2, 2) : new Loc(2, 2);
-
-            static ICommand attack(Mech m, IEnumerable<Loc> targets)
+            var target = new TargetZone(TargetShape.Range, 20, 2);
+            int cooldown = 6;
+            ICommand attack(Mech m, IEnumerable<Loc> targets)
             {
                 var anim = Option.Some<IAnimation>(new ExplosionAnimation(targets, Colors.Fire));
                 return new DelayAttackCommand(EngineConsts.TURN_TICKS * 2, new AttackCommand(m, EngineConsts.TURN_TICKS, 10, targets, anim));
             }
 
-            return new Weapon(3, 3, pos, initialFacing, tiles, 50,
-                                new TargetZone(TargetShape.Range, 20, 2), attack)
-            { Name = name, Art = _missileArt, HeatGenerated = 3, Cooldown = 6, SpeedDelta = 15 };
+            var p = new Part(name, 3, 3, tiles);
+            p.Art = _missileArt;
+            p.Center = pos;
+            p.Add(new StabilityComponent(50));
+            p.Add(new HeatComponent(4, 0, 0, 0));
+            p.Add(new SpeedComponent(15));
+            p.Add(new ActivateComponent(target, attack, cooldown));
+            return p;
         }
 
-        internal static Weapon BuildLargeMissile()
+        internal static Part BuildLargeMissile()
         {
-            RotateChar[] tiles = new RotateChar[12] { trn, trn, trn, b2, b4, b2, b3, b3, b3, sl, b2, sr };
+            var tiles = new RotateChar[12] { trn, trn, trn, b2, b4, b2, b3, b3, b3, sl, b2, sr };
 
-            static ICommand attack(Mech m, IEnumerable<Loc> targets)
+            var target = new TargetZone(TargetShape.Range, 30, 3, false);
+            int cooldown = 15;
+            ICommand attack(Mech m, IEnumerable<Loc> targets)
             {
                 var anim = Option.Some<IAnimation>(new ExplosionAnimation(targets, Colors.Fire));
                 return new DelayAttackCommand(240, new AttackCommand(m, EngineConsts.TURN_TICKS, 10, targets, anim));
             }
 
-            return new Weapon(3, 4, new Loc(0, 0), Direction.N, tiles, 100,
-                                new TargetZone(TargetShape.Range, 30, 3, false), attack)
-            { Name = "Missiles (large)", Art = _missileArt, HeatGenerated = 10, Cooldown = 15, SpeedDelta = 25 };
+            var p = new Part("Missiles (large)", 3, 4, tiles);
+            p.Art = _missileArt;
+            p.Add(new StabilityComponent(100));
+            p.Add(new HeatComponent(10, 0, 0, 0));
+            p.Add(new SpeedComponent(25));
+            p.Add(new ActivateComponent(target, attack, cooldown));
+            return p;
         }
 
-        internal static Weapon BuildSmallLaser()
+        internal static Part BuildSmallLaser()
         {
-            static ICommand attack(Mech m, IEnumerable<Loc> targets)
+            var tiles = new RotateChar[4] { trn, b4, b3, b2 };
+
+            var target = new TargetZone(TargetShape.Ray, 20, 1);
+            int cooldown = 4;
+            ICommand attack(Mech m, IEnumerable<Loc> targets)
             {
                 var anim = Option.Some<IAnimation>(new FlashAnimation(targets, Colors.Fire));
                 return new DelayAttackCommand(10, new AttackCommand(m, EngineConsts.TURN_TICKS, 10, targets, anim, true));
             }
 
-             var tiles = new RotateChar[4] { trn, b4, b3, b2 };
-
-            return new Weapon(1, 4, new Loc(0, 0), Direction.N, tiles, 50,
-                                new TargetZone(TargetShape.Ray, 20, 1), attack)
-            { Name = "Laser (small)", HeatGenerated = 1, Cooldown = 4, SpeedDelta = 5 };
+            var p = new Part("Laser (small)", 1, 4, tiles);
+            p.Add(new StabilityComponent(50));
+            p.Add(new HeatComponent(2, 0, 0, 0));
+            p.Add(new SpeedComponent(10));
+            p.Add(new ActivateComponent(target, attack, cooldown));
+            return p;
         }
 
-        internal static Weapon BuildLargeLaser()
+        internal static Part BuildLargeLaser()
         {
-            static ICommand attack(Mech m, IEnumerable<Loc> targets)
+            var tiles = new RotateChar[8] { trn, trn, b4, b4, b3, b3, b2, b2 };
+
+            var target = new TargetZone(TargetShape.Ray, 35, 2);
+            var cooldown = 10;
+            ICommand attack(Mech m, IEnumerable<Loc> targets)
             {
                 var anim = Option.Some<IAnimation>(new ExplosionAnimation(targets, Colors.Fire));
                 return new DelayAttackCommand(60, new AttackCommand(m, EngineConsts.TURN_TICKS, 15, targets, anim, true));
             }
 
-            var tiles = new RotateChar[8] { trn, trn, b4, b4, b3, b3, b2, b2 };
-
-            return new Weapon(2, 4, new Loc(0, 0), Direction.N, tiles, 100,
-                                new TargetZone(TargetShape.Ray, 35, 2), attack)
-            { Name = "Laser (large)", HeatGenerated = 6, Cooldown = 10, SpeedDelta = 20 };
+            var p = new Part("Laser (large)", 2, 4, tiles);
+            p.Add(new StabilityComponent(100));
+            p.Add(new HeatComponent(8, 0, 0, 0));
+            p.Add(new SpeedComponent(20));
+            p.Add(new ActivateComponent(target, attack, cooldown));
+            return p;
         }
 
-        internal static Weapon BuildSniper()
+        internal static Part BuildSniper()
         {
-            static ICommand attack(Mech m, IEnumerable<Loc> targets)
+            var tiles = new RotateChar[10] { vt, em, vt, em, vt, hz, vt, vt, sl, b3 };
+
+            var target = new TargetZone(TargetShape.Ray, 50, 1);
+            int cooldown = 15;
+            ICommand attack(Mech m, IEnumerable<Loc> targets)
             {
                 var anim = Option.Some<IAnimation>(new ExplosionAnimation(targets, Colors.Fire));
                 return new DelayAttackCommand(10, new AttackCommand(m, EngineConsts.TURN_TICKS * 3, 25, targets, anim, true));
             }
 
-            var tiles = new RotateChar[10] { vt, em, vt, em, vt, hz, vt, vt, sl, b3 };
-
-            return new Weapon(2, 5, new Loc(0, 0), Direction.N, tiles, 50,
-                                new TargetZone(TargetShape.Ray, 50, 1), attack)
-            { Name = "Sniper", HeatGenerated = 1, Cooldown = 15, SpeedDelta = 20 };
+            var p = new Part("Sniper", 2, 5, tiles);
+            p.Add(new StabilityComponent(50));
+            p.Add(new HeatComponent(1, 0, 0, 0));
+            p.Add(new SpeedComponent(20));
+            p.Add(new ActivateComponent(target, attack, cooldown));
+            return p;
         }
 
-        internal static Weapon BuildFlak()
+        internal static Part BuildFlak()
         {
-            static ICommand attack(Mech m, IEnumerable<Loc> targets)
+            var tiles = new RotateChar[8] { vt, vt, vt, vt, b4, b4, b4, b4 };
+
+            var target = new TargetZone(TargetShape.Range, 35, 3);
+            int cooldown = 15;
+            ICommand attack(Mech m, IEnumerable<Loc> targets)
             {
                 var anim = Option.Some<IAnimation>(new ExplosionAnimation(targets, Colors.Fire));
                 return new DelayAttackCommand(60, new AttackCommand(m, EngineConsts.TURN_TICKS * 2, 15, targets, anim));
             }
 
-            var tiles = new RotateChar[8] { vt, vt, vt, vt, b4, b4, b4, b4 };
-
-            return new Weapon(2, 4, new Loc(0, 0), Direction.N, tiles, 100,
-                                new TargetZone(TargetShape.Range, 35, 3), attack)
-            { Name = "Flak Cannon", HeatGenerated = 15, Cooldown = 15, SpeedDelta = 20 };
+            var p = new Part("Flak Cannon", 2, 4, tiles);
+            p.Add(new StabilityComponent(100));
+            p.Add(new HeatComponent(20, 0, 0, 0));
+            p.Add(new SpeedComponent(20));
+            p.Add(new ActivateComponent(target, attack, cooldown));
+            return p;
         }
 
         //internal static Weapon BuildSword()
@@ -133,23 +164,26 @@ namespace Mecurl.Parts
         //    { Name = "Sword", HeatGenerated = 0, Cooldown = 2, SpeedDelta = -10 };
         //}
 
-        internal static Core BuildSmallCore()
+        internal static Part BuildSmallCore()
         {
-            var facing = Direction.N;
-            return new Core(3, 3, new Loc(0, 0), facing,
-                    new RotateChar[9] { sr, arn, sl, b3, at, b3, sl, b2, sr }, 100, 1, 30)
-            { Name = "Core", HeatCapacity = 30, HeatRemoved = 0.5 };
+            var tiles = new RotateChar[9] { sr, arn, sl, b3, at, b3, sl, b2, sr };
+
+            var p = new Part("Core (small)", 3, 3, tiles);
+            p.Add(new StabilityComponent(100));
+            p.Add(new CoreComponent(1, 1));
+            p.Add(new HeatComponent(0, 30, 0.5, 3));
+            return p;
         }
 
-        internal static Part BuildLeg(bool left)
+        internal static Part BuildLeg()
         {
-            var pos = left ? new Loc(-2, 0) : new Loc(2, 0);
+            var tiles = new RotateChar[2] { arn, arn };
 
-            return new Part(1, 2, pos, Direction.N,
-                new RotateChar[2] { arn, arn }, 30)
-            { Name = "Leg", SpeedDelta = -15 };
+            var p = new Part("Leg", 1, 2, tiles);
+            p.Add(new StabilityComponent(30));
+            p.Add(new SpeedComponent(-15));
+            return p;
         }
-
 
         internal static Part BuildRandom()
         {

@@ -1,43 +1,47 @@
 ﻿using Engine;
 using Mecurl.Actors;
+using Mecurl.Parts.Components;
 using Mecurl.State;
 using Optional;
-using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace Mecurl.Parts
 {
     public class WeaponGroup
     {
-        internal List<Weapon>[] Groups { get; }
+        internal List<Part>[] Groups { get; }
 
+        private const int weaponGroupCount = 6;
         private readonly int[] _nextWeapon;
 
         public WeaponGroup()
         {
-            const int weaponGroupCount = 6;
-            Groups = new List<Weapon>[weaponGroupCount];
+            Groups = new List<Part>[weaponGroupCount];
             _nextWeapon = new int[weaponGroupCount];
 
             for (int i = 0; i < weaponGroupCount; i++)
             {
-                Groups[i] = new List<Weapon>();
+                Groups[i] = new List<Part>();
             }
         }
 
         public Option<ICommand> FireGroup(Mech mech, int group)
         {
-            var weaponIndex = NextIndex(group);
+            int weaponIndex = NextIndex(group);
             if (weaponIndex >= 0)
             {
-                var weapon = Groups[group][weaponIndex];
+                Part part = Groups[group][weaponIndex];
+                return part.Get<ActivateComponent>().Match(
+                    some: comp => {
+                        if (comp.CurrentCooldown > 0) return Option.None<ICommand>();
 
-                if (weapon.CurrentCooldown > 0) return Option.None<ICommand>();
-
-                if (mech is Player)
-                    return PlayerFireMethod(mech, weapon);
-                else
-                    return AiFireMethod(mech, weapon);
+                        if (mech is Player)
+                            return PlayerFireMethod(mech, part.Name, comp, part.Get<HeatComponent>());
+                        else
+                            return AiFireMethod(mech, comp, part.Get<HeatComponent>());
+                    },
+                    none: () => Option.None<ICommand>());
             }
 
             return Option.None<ICommand>();
@@ -45,89 +49,121 @@ namespace Mecurl.Parts
 
         public bool CanFireGroup(int group)
         {
-            var weaponIndex = NextIndex(group);
+            int weaponIndex = NextIndex(group);
             if (weaponIndex >= 0)
             {
-                var weapon = Groups[group][weaponIndex];
-
-                return weapon.CurrentCooldown <= 0;
+                Part weapon = Groups[group][weaponIndex];
+                return weapon.Get<ActivateComponent>().Match(
+                    some: comp => comp.CurrentCooldown <= 0,
+                    none: () => false);
             }
 
             return false;
         }
 
-        public void Add(Weapon w, int group)
+        public bool Add(Part p, int group)
         {
-            Groups[group].Add(w);
-            w.Group = group;
+            if (group < 0 || group >= weaponGroupCount) return false;
+
+            return p.Get<ActivateComponent>().Match(
+                some: w =>
+                {
+                    Groups[group].Add(p);
+                    w.Group = group;
+                    return true;
+                },
+                none: () => false);
         }
 
-        public void Remove(Weapon w)
+        public void Remove(Part p)
         {
-            Groups[w.Group].Remove(w);
-            w.Group = -1;
+            p.Get<ActivateComponent>().MatchSome(w =>
+            {
+                if (w.Group == -1)
+                {
+                    Debug.WriteLine($"Attempted to remove {p.Name}, but it isn't assigned to a weapon group");
+                    return;
+                }
+
+                Groups[w.Group].Remove(p);
+                w.Group = -1;
+            });
         }
 
-        public void Reassign(Weapon w, int newGroup)
+        public void Reassign(Part p, int newGroup)
         {
-            Groups[w.Group].Remove(w);
-            Groups[newGroup].Add(w);
-            w.Group = newGroup;
+            p.Get<ActivateComponent>().MatchSome(w =>
+            {
+                if (w.Group == -1)
+                {
+                    Debug.WriteLine($"Attempted to reassign {p.Name}, but it isn't assigned to a weapon group");
+                    Groups[newGroup].Add(p);
+                    w.Group = newGroup;
+                }
+                else
+                {
+                    Groups[w.Group].Remove(p);
+                    Groups[newGroup].Add(p);
+                    w.Group = newGroup;
+                }
+            });
         }
 
-        internal Option<ICommand> AiFireMethod(Mech m, Weapon w)
+        internal Option<ICommand> AiFireMethod(Mech m, ActivateComponent ac, Option<HeatComponent> hc)
         {
-            foreach (var loc in w.Target.GetAllValidTargets(m.Pos, m.Facing, Measure.Euclidean, true))
+            foreach (var loc in ac.Target.GetAllValidTargets(m.Pos, m.Facing, Measure.Euclidean, true))
             {
                 if (loc == Game.Player.Pos)
                 {
-                    m.UpdateHeat(w.HeatGenerated);
-                    m.PartHandler.WeaponGroup.UpdateState(w);
-                    var targets = w.Target.GetTilesInRange(m.Pos, loc, Measure.Euclidean);
-                    return Option.Some(w.Attack(m, targets));
+                    hc.MatchSome(comp => m.UpdateHeat(comp.HeatGenerated));
+                    m.PartHandler.WeaponGroup.UpdateState(ac);
+                    var targets = ac.Target.GetTilesInRange(m.Pos, loc, Measure.Euclidean);
+                    return Option.Some(ac.Activate(m, targets));
                 }
             }
 
             return Option.None<ICommand>();
         }
 
-        private Option<ICommand> PlayerFireMethod(Mech m, Weapon w)
+        private Option<ICommand> PlayerFireMethod(Mech m, string name, ActivateComponent ac, Option<HeatComponent> hc)
         {
             Game.StateHandler.PushState(new TargettingState(Game.MapHandler, m, Measure.Euclidean,
-                w.Target, targets =>
+                ac.Target, targets =>
                 {
                     Game.StateHandler.PopState();
-                    Game.MessagePanel.Add($"[color=info]Info[/color]: {w.Name} fired");
+                    Game.MessagePanel.Add($"[color=info]Info[/color]: {name} fired");
 
-                    m.UpdateHeat(w.HeatGenerated);
-                    m.PartHandler.WeaponGroup.UpdateState(w);
+                    hc.MatchSome(comp => m.UpdateHeat(comp.HeatGenerated));
+                    m.PartHandler.WeaponGroup.UpdateState(ac);
 
-                    return Option.Some(w.Attack(m, targets));
+                    return Option.Some(ac.Activate(m, targets));
                 }));
 
             return Option.None<ICommand>();
         }
 
         // handling state stuff that needs to happen after the weapon has been fired
-        internal void UpdateState(Weapon weapon)
+        internal void UpdateState(ActivateComponent weapon)
         {
             // update cooldown
             weapon.CurrentCooldown = weapon.Cooldown;
-            List<Weapon> group = Groups[weapon.Group];
+            List<Part> group = Groups[weapon.Group];
             int minCooldown = weapon.CurrentCooldown;
             int currIndex = _nextWeapon[weapon.Group];
             int index = currIndex;
 
             for (int i = 0; i < group.Count; i++)
             {
-                Weapon w = group[i];
-
-                if ((w.CurrentCooldown < minCooldown) ||
-                    (w.CurrentCooldown == minCooldown && IndexDist(i, currIndex, group.Count) < IndexDist(index, currIndex, group.Count)))
+                Part p = group[i];
+                p.Get<ActivateComponent>().MatchSome(w =>
                 {
-                    minCooldown = w.CurrentCooldown;
-                    index = i;
-                }
+                    if ((w.CurrentCooldown < minCooldown) ||
+                        (w.CurrentCooldown == minCooldown && IndexDist(i, currIndex, group.Count) < IndexDist(index, currIndex, group.Count)))
+                    {
+                        minCooldown = w.CurrentCooldown;
+                        index = i;
+                    }
+                });
             }
 
             _nextWeapon[weapon.Group] = index;

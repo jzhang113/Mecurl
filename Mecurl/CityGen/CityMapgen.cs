@@ -204,12 +204,13 @@ namespace Mecurl.CityGen
 
         private PartHandler BuildMissileMech()
         {
-            Core core = PartFactory.BuildSmallCore();
-
+            var core = PartFactory.BuildSmallCore();
             var w1 = PartFactory.BuildSmallMissile(true);
             var w2 = PartFactory.BuildSmallMissile(false);
-            var l1 = PartFactory.BuildLeg(true);
-            var l2 = PartFactory.BuildLeg(false);
+            var l1 = PartFactory.BuildLeg();
+            l1.Center = new Loc(-2, 0);
+            var l2 = PartFactory.BuildLeg();
+            l2.Center = new Loc(2, 0);
 
             var ph = new PartHandler(new List<Part>()
             {
@@ -228,16 +229,15 @@ namespace Mecurl.CityGen
 
         private PartHandler BuildLaserMech()
         {
-            Core core = PartFactory.BuildSmallCore();
-
+            var core = PartFactory.BuildSmallCore();
             var w1 = PartFactory.BuildSmallLaser();
             w1.Center = new Loc(-3, 0);
-            w1.UpdateBounds();
             var w2 = PartFactory.BuildSmallLaser();
             w2.Center = new Loc(3, 0);
-            w2.UpdateBounds();
-            var l1 = PartFactory.BuildLeg(true);
-            var l2 = PartFactory.BuildLeg(false);
+            var l1 = PartFactory.BuildLeg();
+            l1.Center = new Loc(-2, 0);
+            var l2 = PartFactory.BuildLeg();
+            l2.Center = new Loc(2, 0);
 
             var ph = new PartHandler(new List<Part>()
             {
@@ -256,17 +256,13 @@ namespace Mecurl.CityGen
 
         private PartHandler BuildSniperMech()
         {
-            Core core = PartFactory.BuildSmallCore();
-
+            var core = PartFactory.BuildSmallCore();
             var w1 = PartFactory.BuildSniper();
             w1.Center = new Loc(2, -3);
-            w1.UpdateBounds();
-            var l1 = PartFactory.BuildLeg(true);
+            var l1 = PartFactory.BuildLeg();
             l1.Center = new Loc(-2, 1);
-            l1.UpdateBounds();
-            var l2 = PartFactory.BuildLeg(false);
+            var l2 = PartFactory.BuildLeg();
             l2.Center = new Loc(2, 1);
-            l2.UpdateBounds();
 
             var ph = new PartHandler(new List<Part>()
             {

@@ -1,10 +1,10 @@
-﻿using BearLib;
-using Engine;
+﻿using Engine;
 using Engine.Drawing;
 using Engine.Map;
 using Mecurl.Commands;
 using Mecurl.Engine;
 using Mecurl.Parts;
+using Mecurl.Parts.Components;
 using Optional;
 using System;
 using System.Collections.Generic;
@@ -19,7 +19,7 @@ namespace Mecurl.Actors
 
         public double CurrentHeat { get; private set; }
         public int Awareness { get; }
-        
+
         public Direction Facing => PartHandler.Facing;
 
         protected IMessageHandler _messages;
@@ -54,7 +54,7 @@ namespace Mecurl.Actors
             ProcessTick();
 
             // use coolant when heat is too high
-            if (CurrentHeat > PartHandler.TotalHeatCapacity && PartHandler.Core.Coolant > 0)
+            if (CurrentHeat > PartHandler.TotalHeatCapacity && PartHandler.Coolant > 0)
             {
                 UseCoolant();
                 return Option.Some<ICommand>(new WaitCommand(this, EngineConsts.COOL_USE_TICKS));
@@ -66,7 +66,7 @@ namespace Mecurl.Actors
             // 3. running away (weapons on cooldown)
             // 4. wander
 
-            var groupn = new int[] { 1, 2, 3, 4, 5, 6 };
+            int[] groupn = new int[] { 1, 2, 3, 4, 5, 6 };
             (int firstn, _) = groupn
                 .Select(n => (n, PartHandler.WeaponGroup.CanFireGroup(n - 1)))
                 .FirstOrDefault(status => status.Item2);
@@ -76,7 +76,7 @@ namespace Mecurl.Actors
                 // attack if possible
                 Option<ICommand> attack = PartHandler.WeaponGroup.FireGroup(this, firstn - 1);
                 if (attack.HasValue) return attack;
-                     
+
                 // we have weapons, look for enemies
                 if (_map.PlayerMap[Pos.X, Pos.Y] < Awareness)
                 {
@@ -112,7 +112,7 @@ namespace Mecurl.Actors
                     Loc maxLoc = Pos;
                     foreach (Loc loc in _map.GetPointsInRadius(Pos, 1, Measure.Euclidean))
                     {
-                        var dist = Distance.EuclideanSquared(loc, Game.Player.Pos);
+                        int dist = Distance.EuclideanSquared(loc, Game.Player.Pos);
                         if (dist > maxDist)
                         {
                             maxDist = dist;
@@ -135,7 +135,12 @@ namespace Mecurl.Actors
             }
         }
 
-        public override bool DeathCheck() => PartHandler.Core.Stability <= 0;
+        public override bool DeathCheck()
+        {
+            return PartHandler.Core.Get<StabilityComponent>().Match(
+                some: comp => comp.Stability <= 0,
+                none: () => true);
+        }
 
         internal void RotateLeft()
         {
@@ -157,41 +162,44 @@ namespace Mecurl.Actors
 
             foreach (Part p in PartHandler.PartList)
             {
-                for (int i = 0; i < p.Structure.Length; i++)
+                p.Get<StabilityComponent>().MatchSome(comp =>
                 {
-                    if (p.IsPassable(i))
+                    for (int i = 0; i < p.Structure.Length; i++)
                     {
-                        continue;
-                    }
-
-                    int dx, dy;
-                    if (p.Facing == Direction.N || p.Facing == Direction.S)
-                    {
-                        dx = i % p.Width;
-                        dy = i / p.Width;
-                    }
-                    else
-                    {
-                        dx = i / p.Width;
-                        dy = i % p.Width;
-                    }
-
-                    Loc currPos = Pos + (p.Bounds.Left + dx, p.Bounds.Top + dy);
-                    if (targets.Contains(currPos))
-                    {
-                        // some damage computation here
-                        double damage = power;
-                        p.Stability -= damage;
-                        _messages.Add($"[color=warn]Alert[/color]: {p.Name} took {damage} damage");
-
-                        if (p.Stability <= 0)
+                        if (p.IsPassable(i))
                         {
-                            removeList.Add(p);
-                            _messages.Add($"[color=err]Warning[/color]: {p.Name} destroyed");
+                            continue;
                         }
-                        break;
+
+                        int dx, dy;
+                        if (p.Facing == Direction.N || p.Facing == Direction.S)
+                        {
+                            dx = i % p.Width;
+                            dy = i / p.Width;
+                        }
+                        else
+                        {
+                            dx = i / p.Width;
+                            dy = i % p.Width;
+                        }
+
+                        Loc currPos = Pos + (p.Bounds.Left + dx, p.Bounds.Top + dy);
+                        if (targets.Contains(currPos))
+                        {
+                            // some damage computation here
+                            double damage = power;
+                            comp.Stability -= damage;
+                            _messages.Add($"[color=warn]Alert[/color]: {p.Name} took {damage} damage");
+
+                            if (comp.Stability <= 0)
+                            {
+                                removeList.Add(p);
+                                _messages.Add($"[color=err]Warning[/color]: {p.Name} destroyed");
+                            }
+                            break;
+                        }
                     }
-                }
+                });
             }
 
             foreach (Part p in removeList)
@@ -208,7 +216,7 @@ namespace Mecurl.Actors
                     {
                         int xPos = Pos.X + x + p.Bounds.Left;
                         int yPos = Pos.Y + y + p.Bounds.Top;
-                        var tile = Game.MapHandler.Field[xPos, yPos];
+                        Tile tile = Game.MapHandler.Field[xPos, yPos];
 
                         if (!tile.IsWall)
                         {
@@ -222,7 +230,7 @@ namespace Mecurl.Actors
 
         internal void UseCoolant()
         {
-            double coolant = PartHandler.Core.Coolant;
+            double coolant = PartHandler.Coolant;
             if (coolant <= 0)
             {
                 _messages.Add("[color=warn]Alert[/color]: No coolant remaining");
@@ -232,25 +240,36 @@ namespace Mecurl.Actors
                 _messages.Add("[color=info]Info[/color]: Flushing coolant");
                 double coolantUsed = Math.Min(coolant, EngineConsts.COOL_USE_AMT);
                 CurrentHeat = Math.Max(CurrentHeat - coolantUsed * EngineConsts.COOL_POWER, 0);
-                PartHandler.Core.Coolant -= coolantUsed;
+                PartHandler.Coolant -= coolantUsed;
             }
         }
 
         internal void ProcessTick()
         {
+            // lower cooldowns
             foreach (Part p in PartHandler)
             {
-                UpdateHeat(-p.HeatRemoved);
-
-                if (p.CurrentCooldown > 0)
+                p.Get<ActivateComponent>().MatchSome(activate =>
                 {
-                    p.CurrentCooldown--;
-
-                    if (p.CurrentCooldown == 0)
+                    if (activate.CurrentCooldown > 0)
                     {
-                        _messages.Add($"[color=info]Info[/color]: {p.Name} ready");
+                        activate.CurrentCooldown--;
+
+                        if (activate.CurrentCooldown <= 0)
+                        {
+                            _messages.Add($"[color=info]Info[/color]: {p.Name} ready");
+                        }
                     }
-                }
+                });
+            }
+
+            // process heat
+            foreach (Part p in PartHandler)
+            {
+                p.Get<HeatComponent>().MatchSome(heat =>
+                {
+                    UpdateHeat(-heat.HeatRemoved);
+                });
             }
 
             CurrentHeat = Math.Max(CurrentHeat, 0);
@@ -260,19 +279,22 @@ namespace Mecurl.Actors
             {
                 PartHandler.PartList.Random(Game.Rand).MatchSome(part =>
                 {
-                    // some damage computation here
-                    double damage = EngineConsts.HEAT_DAMAGE;
-                    part.Stability -= damage;
-                    _messages.Add($"[color=warn]Alert[/color]: {part.Name} took {damage} damage from overheating");
-
-                    if (part.Stability <= 0)
+                    part.Get<StabilityComponent>().MatchSome(comp =>
                     {
-                        Game.MapHandler.RemoveFromMechTileMap(this);
-                        PartHandler.Remove(part);
-                        Game.MapHandler.AddToMechTileMap(this, Pos);
+                        // some damage computation here
+                        double damage = EngineConsts.HEAT_DAMAGE;
+                        comp.Stability -= damage;
+                        _messages.Add($"[color=warn]Alert[/color]: {part.Name} took {damage} damage from overheating");
 
-                        _messages.Add($"[color=err]Warning[/color]: {part.Name} destroyed by heat");
-                    }
+                        if (comp.Stability <= 0)
+                        {
+                            Game.MapHandler.RemoveFromMechTileMap(this);
+                            PartHandler.Remove(part);
+                            Game.MapHandler.AddToMechTileMap(this, Pos);
+
+                            _messages.Add($"[color=err]Warning[/color]: {part.Name} destroyed by heat");
+                        }
+                    });
                 });
             }
         }

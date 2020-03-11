@@ -1,6 +1,7 @@
 ﻿using BearLib;
 using Engine;
 using Engine.Drawing;
+using Mecurl.Parts.Components;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -12,7 +13,7 @@ namespace Mecurl.Parts
     public class PartHandler : IEnumerable<Part>
     {
         // TODO: should probably be passed in
-        public Core Core { get; internal set; }
+        public Part Core { get; internal set; }
 
         public IList<Part> PartList { get; }
         public WeaponGroup WeaponGroup { get; }
@@ -21,6 +22,7 @@ namespace Mecurl.Parts
         public Direction Facing { get; private set; }
 
         public double TotalHeatCapacity { get; private set; }
+        public double Coolant { get; internal set; }
 
         public PartHandler()
         {
@@ -61,7 +63,12 @@ namespace Mecurl.Parts
             Bounds = Rectangle.FromLTRB(newLeft, newTop, newRight, newBot);
 
             // add heat capacity to total
-            TotalHeatCapacity += p.HeatCapacity;
+            p.Get<HeatComponent>().MatchSome(hc =>
+            {
+                TotalHeatCapacity += hc.HeatCapacity;
+                Coolant += hc.MaxCoolant;
+            });
+
             return true;
         }
 
@@ -69,16 +76,16 @@ namespace Mecurl.Parts
         {
             PartList.Remove(p);
 
-            if (p is Weapon w)
+            if (p.Has<ActivateComponent>())
             {
-                WeaponGroup.Remove(w);
+                WeaponGroup.Remove(p);
             }
 
             // HACK: I don't know a way to fix the bounding box without recalculating it
             Bounds = CalculateBounds(0, 0, 0, 0);
 
             // update heat capacity
-            TotalHeatCapacity -= p.HeatCapacity;
+            p.Get<HeatComponent>().MatchSome(comp => TotalHeatCapacity -= comp.HeatCapacity);
         }
 
         private Rectangle CalculateBounds(int left, int top, int right, int bot)
@@ -96,19 +103,37 @@ namespace Mecurl.Parts
 
         public int GetMoveSpeed()
         {
+            double speedMult = Core.Get<CoreComponent>().Match(
+                some: comp => comp.SpeedMultiplier,
+                none: () => 1);
+
             // TODO: revisit this for balancing
             // multiply the base time cost by core type
-            double timeCost = EngineConsts.TURN_TICKS * Core.SpeedMultiplier;
+            double timeCost = EngineConsts.TURN_TICKS * speedMult;
 
             // every part has an associated speed delta
             // this is generally positive on heavy parts and negative on propulsion
-            foreach (var part in PartList)
+            foreach (Part p in PartList)
             {
-                timeCost += part.SpeedDelta;
+                p.Get<SpeedComponent>().MatchSome(comp =>
+                {
+                    timeCost += comp.SpeedDelta;
+                });
             }
 
             // limit move speed changes up to 4x 
             return Math.Clamp((int)timeCost, 30, 480);
+        }
+
+        public double GetMaxCoolant()
+        {
+            double total = 0;
+            foreach (Part p in PartList)
+            {
+                p.Get<HeatComponent>().MatchSome(comp => total += comp.MaxCoolant);
+            }
+
+            return total;
         }
 
         internal void RotateRight()
@@ -140,7 +165,9 @@ namespace Mecurl.Parts
             // anything intersecting the core is invalid
             foreach (Part p in PartList)
             {
-                p.Invalid = p is Core ? false : p.Intersects(Core);
+                p.Invalid = p.Get<CoreComponent>().Match(
+                    some: _ => false,
+                    none: () => p.Intersects(Core));
             }
 
             // some flood fill thing to check for connectivity
@@ -149,10 +176,12 @@ namespace Mecurl.Parts
             var seen = new List<Loc>();
             ExpandRectPoints(Core, queue, seen);
 
+            // list of parts we haven't processed
             var remaining = new List<Part>();
             foreach (Part p in PartList)
             {
-                if (p is Core || p.Invalid) continue;
+                if (p.Invalid) continue;
+                if (p.Get<CoreComponent>().HasValue) continue;
 
                 remaining.Add(p);
             }
@@ -202,12 +231,12 @@ namespace Mecurl.Parts
             // brute force collision check
             for (int i = 0; i < PartList.Count - 1; i++)
             {
-                var p1 = PartList[i];
+                Part p1 = PartList[i];
                 if (p1.Invalid) continue;
 
                 for (int j = i + 1; j < PartList.Count; j++)
                 {
-                    var p2 = PartList[j];
+                    Part p2 = PartList[j];
                     if (p2.Invalid) continue;
 
                     if (p1.Intersects(p2))

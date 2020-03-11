@@ -26,7 +26,7 @@ namespace Mecurl
         private static MissionInfo[] _missions;
 
         internal static PartHandler Blueprint { get; set; }
-        internal static List<Core> AvailCores { get; private set; }
+        internal static List<Part> AvailCores { get; private set; }
         internal static List<Part> AvailParts { get; private set; }
         internal static double Scrap { get; set; }
         internal static MissionInfo NextMission { get; set; }
@@ -105,7 +105,7 @@ namespace Mecurl
 
         private bool CheckMissionCompletion()
         {
-            return ((Mech)Game.Player).PartHandler.Core.Stability > 0 && MapHandler.Units.Count == 1;
+            return !((Mech)Game.Player).DeathCheck() && MapHandler.Units.Count == 1;
         }
 
         internal static void Reset()
@@ -124,12 +124,17 @@ namespace Mecurl
             }
 
             Blueprint = new PartHandler();
-            AvailCores = new List<Core>() { PartFactory.BuildSmallCore() };
+            AvailCores = new List<Part>() { PartFactory.BuildSmallCore() };
+
+            var l1 = PartFactory.BuildLeg();
+            l1.Center = new Loc(-2, 0);
+            var l2 = PartFactory.BuildLeg();
+            l2.Center = new Loc(2, 0);
+
             AvailParts = new List<Part>() {
                 PartFactory.BuildSmallMissile(true),
                 PartFactory.BuildSmallMissile(false),
-                PartFactory.BuildLeg(true),
-                PartFactory.BuildLeg(false)
+                l1, l2
             };
             NextMission = GenerateMission();
 
