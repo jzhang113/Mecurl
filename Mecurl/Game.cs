@@ -102,7 +102,8 @@ namespace Mecurl
 
         public static MissionInfo GenerateMission()
         {
-            return _missions[Difficulty];
+            int level = Math.Clamp(Difficulty, 0, 4);
+            return _missions[level];
         }
 
         private bool CheckMissionCompletion()
