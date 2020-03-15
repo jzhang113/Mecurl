@@ -8,7 +8,7 @@ using System.Diagnostics;
 
 namespace Mecurl.Parts
 {
-    public class WeaponGroup
+    class WeaponGroup
     {
         internal List<Part>[] Groups { get; }
 

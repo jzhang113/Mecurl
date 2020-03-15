@@ -13,7 +13,7 @@ using System.Linq;
 
 namespace Mecurl.Actors
 {
-    public class Mech : BaseActor
+    class Mech : BaseActor
     {
         public PartHandler PartHandler { get; set; }
 
@@ -137,9 +137,7 @@ namespace Mecurl.Actors
 
         public override bool DeathCheck()
         {
-            return PartHandler.Core.Get<StabilityComponent>().Match(
-                some: comp => comp.Stability <= 0,
-                none: () => true);
+            return PartHandler.Core.StabilityComponent.Stability <= 0;
         }
 
         internal void RotateLeft()

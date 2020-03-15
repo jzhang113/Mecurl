@@ -33,7 +33,7 @@ namespace Mecurl.Parts
             }
         }
 
-        private readonly IList<IPartComponent> _components;
+        protected IList<IPartComponent> Components { get; }
 
         private Loc _center;
         internal bool Invalid { get; set; }
@@ -53,7 +53,7 @@ namespace Mecurl.Parts
 
             Invalid = false;
 
-            _components = new List<IPartComponent>();
+            Components = new List<IPartComponent>();
         }
 
         #region Managing components
@@ -61,13 +61,13 @@ namespace Mecurl.Parts
         {
             if (Has<T>()) return false;
 
-            _components.Add(component);
+            Components.Add(component);
             return true;
         }
 
         public bool Has<T>()
         {
-            foreach (IPartComponent comp in _components)
+            foreach (IPartComponent comp in Components)
             {
                 if (comp.GetType() == typeof(T))
                 {
@@ -80,7 +80,7 @@ namespace Mecurl.Parts
 
         public Option<T> Get<T>()
         {
-            foreach (IPartComponent comp in _components)
+            foreach (IPartComponent comp in Components)
             {
                 if (comp.GetType() == typeof(T))
                 {

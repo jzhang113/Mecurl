@@ -10,11 +10,9 @@ using System.Linq;
 
 namespace Mecurl.Parts
 {
-    public class PartHandler : IEnumerable<Part>
+    class PartHandler : IEnumerable<Part>
     {
-        // TODO: should probably be passed in
-        public Part Core { get; internal set; }
-
+        public CorePart Core { get; }
         public IList<Part> PartList { get; }
         public WeaponGroup WeaponGroup { get; }
 
@@ -24,7 +22,7 @@ namespace Mecurl.Parts
         public double TotalHeatCapacity { get; private set; }
         public double Coolant { get; internal set; }
 
-        public PartHandler()
+        public PartHandler(CorePart core)
         {
             Facing = Direction.N;
             PartList = new List<Part>();
@@ -32,9 +30,12 @@ namespace Mecurl.Parts
 
             Bounds = new Rectangle(0, 0, 0, 0);
             TotalHeatCapacity = 0;
+
+            Core = core;
+            Add(core);
         }
 
-        public PartHandler(IEnumerable<Part> parts) : this()
+        public PartHandler(CorePart core, IEnumerable<Part> parts) : this(core)
         {
             foreach (Part p in parts)
             {
@@ -103,9 +104,7 @@ namespace Mecurl.Parts
 
         public int GetMoveSpeed()
         {
-            double speedMult = Core.Get<CoreComponent>().Match(
-                some: comp => comp.SpeedMultiplier,
-                none: () => 1);
+            double speedMult = Core.CoreComponent.SpeedMultiplier;
 
             // TODO: revisit this for balancing
             // multiply the base time cost by core type

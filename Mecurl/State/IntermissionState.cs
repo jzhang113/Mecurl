@@ -50,15 +50,11 @@ namespace Mecurl.State
                 }
             }
 
-            Part core = Game.AvailCores[0];
+            CorePart core = Game.AvailCores[0];
             Part w1 = Game.AvailParts[0];
             Part w2 = Game.AvailParts[1];
 
-            var ph = new PartHandler
-            {
-                Core = core
-            };
-            ph.Add(core);
+            var ph = new PartHandler(core);
             for (int i = 0; i < Game.AvailParts.Count; i++)
             {
                 ph.Add(Game.AvailParts[i]);

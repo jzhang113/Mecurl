@@ -26,12 +26,14 @@ namespace Mecurl
         private static MissionInfo[] _missions;
 
         internal static PartHandler Blueprint { get; set; }
-        internal static List<Part> AvailCores { get; private set; }
+        internal static List<CorePart> AvailCores { get; private set; }
         internal static List<Part> AvailParts { get; private set; }
         internal static double Scrap { get; set; }
         internal static MissionInfo NextMission { get; set; }
         internal static int Year { get; set; }
         internal static int Difficulty { get; set; }
+
+        private static bool _dead;
 
         public Game() : base()
         {
@@ -118,13 +120,13 @@ namespace Mecurl
                 missionInfo.MapHeight = Math.Min(80 + 25 * i, 200);
                 missionInfo.Difficulty = i + 1;
                 missionInfo.Enemies = i + 1;
-                missionInfo.RewardScrap = (int)(Rand.Next(30, 50) * EngineConsts.REPAIR_COST * (0.6 * Difficulty + 0.4));
+                missionInfo.RewardScrap = (int)(Rand.Next(50, 70) * EngineConsts.REPAIR_COST * (0.6 * Difficulty + 0.4));
                 missionInfo.RewardPart = PartFactory.BuildRandom();
                 _missions[i] = missionInfo;
             }
 
-            Blueprint = new PartHandler();
-            AvailCores = new List<Part>() { PartFactory.BuildSmallCore() };
+            Blueprint = new PartHandler(PartFactory.BuildSmallCore());
+            AvailCores = new List<CorePart>() { PartFactory.BuildSmallCore() };
 
             var l1 = PartFactory.BuildLeg();
             l1.Center = new Loc(-2, 0);
@@ -141,6 +143,8 @@ namespace Mecurl
             Scrap = 0;
             Difficulty = 0;
             Year = Game.Rand.Next(2100, 2200);
+
+            _dead = false;
         }
 
         public static void NewMission(MissionInfo info)
@@ -166,9 +170,13 @@ namespace Mecurl
 
         internal static void GameOver()
         {
-            MessagePanel.Add("[color=err]System shutting down[/color]");
-            MessagePanel.Add("Mission Failed. Press [[Enter]] to continue");
-            Game.StateHandler.PushState(new MissionEndState(false));
+            if (!_dead)
+            {
+                _dead = true;
+                MessagePanel.Add("[color=err]System shutting down[/color]");
+                MessagePanel.Add("Mission Failed. Press [[Enter]] to continue");
+                Game.StateHandler.PushState(new MissionEndState(false));
+            }
         }
 
         protected override void ProcessPlayerTurnEvents()

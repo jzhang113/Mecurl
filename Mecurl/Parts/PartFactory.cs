@@ -164,15 +164,15 @@ namespace Mecurl.Parts
         //    { Name = "Sword", HeatGenerated = 0, Cooldown = 2, SpeedDelta = -10 };
         //}
 
-        internal static Part BuildSmallCore()
+        internal static CorePart BuildSmallCore()
         {
             var tiles = new RotateChar[9] { sr, arn, sl, b3, at, b3, sl, b2, sr };
 
-            var p = new Part("Core (small)", 3, 3, tiles);
-            p.Add(new StabilityComponent(100));
-            p.Add(new CoreComponent(1, 1));
-            p.Add(new HeatComponent(0, 30, 0.5, 3));
-            return p;
+            var cc = new CoreComponent(1, 1);
+            var sc = new StabilityComponent(100);
+            var cp = new CorePart("Core (small)", 3, 3, tiles, cc, sc);
+            cp.Add(new HeatComponent(0, 30, 0.5, 3));
+            return cp;
         }
 
         internal static Part BuildLeg()

@@ -212,15 +212,11 @@ namespace Mecurl.CityGen
             var l2 = PartFactory.BuildLeg();
             l2.Center = new Loc(2, 0);
 
-            var ph = new PartHandler(new List<Part>()
+            var ph = new PartHandler(core, new List<Part>()
             {
-                core,
                 l1, l2,
                 w1, w2
-            })
-            {
-                Core = core
-            };
+            });
 
             ph.WeaponGroup.Add(w1, 0);
             ph.WeaponGroup.Add(w2, 0);
@@ -239,15 +235,11 @@ namespace Mecurl.CityGen
             var l2 = PartFactory.BuildLeg();
             l2.Center = new Loc(2, 0);
 
-            var ph = new PartHandler(new List<Part>()
+            var ph = new PartHandler(core, new List<Part>()
             {
-                core,
                 l1, l2,
                 w1, w2
-            })
-            {
-                Core = core
-            };
+            });
 
             ph.WeaponGroup.Add(w1, 0);
             ph.WeaponGroup.Add(w2, 0);
@@ -264,15 +256,11 @@ namespace Mecurl.CityGen
             var l2 = PartFactory.BuildLeg();
             l2.Center = new Loc(2, 1);
 
-            var ph = new PartHandler(new List<Part>()
+            var ph = new PartHandler(core, new List<Part>()
             {
-                core,
                 l1, l2,
                 w1
-            })
-            {
-                Core = core
-            };
+            });
 
             ph.WeaponGroup.Add(w1, 0);
             return ph;

@@ -18,7 +18,7 @@ namespace Engine
 
         public void Add(int id, IAnimation animation)
         {
-            if (_current.TryGetValue(id, out List<IAnimation> queue))
+            if (_current.TryGetValue(id, out List<IAnimation>? queue))
                 queue.Add(animation);
             else
                 _current.Add(id, new List<IAnimation>() { animation });

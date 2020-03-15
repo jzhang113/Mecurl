@@ -5,7 +5,7 @@ using Optional;
 
 namespace Mecurl.Actors
 {
-    public class Player : Mech
+    class Player : Mech
     {
         public Player(in Loc pos, MapHandler map, PartHandler partHandler) : base(pos, '@', Colors.Player, map, partHandler)
         {

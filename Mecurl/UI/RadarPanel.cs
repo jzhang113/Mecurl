@@ -44,7 +44,7 @@ namespace Mecurl.UI
                         var pos = new Loc(topLeftX + subX, topLeftY + subY);
                         if (!map.Field.IsValid(pos)) continue;
 
-                        if (map.Units.TryGetValue(map.ToIndex(pos), out BaseActor actor))
+                        if (map.Units.TryGetValue(map.ToIndex(pos), out BaseActor? actor))
                         {
                             if (actor == Game.Player)
                             {
