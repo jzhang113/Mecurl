@@ -5,9 +5,8 @@ using Mecurl.Parts.Components;
 using Mercurl.Animations;
 using Optional;
 using RexTools;
-using System;
 using System.Collections.Generic;
-
+using System.Linq;
 using static Mecurl.Parts.RotateCharLiterals;
 
 namespace Mecurl.Parts
@@ -149,6 +148,38 @@ namespace Mecurl.Parts
             return p;
         }
 
+        internal static Part BuildTeleporter()
+        {
+            var tiles = new RotateChar[9] { b4, b2, b4, b2, x, b2, b4, b2, b4 };
+
+            var target = new TargetZone(TargetShape.Range, 5, 0, false, false);
+            int cooldown = 25;
+            ICommand teleport(Mech m, IEnumerable<Loc> targets)
+            {
+                var pos = targets.First();
+
+                int newTop = m.PartHandler.Bounds.Top + pos.Y;
+                int newBot = m.PartHandler.Bounds.Bottom + pos.Y;
+                int newLeft = m.PartHandler.Bounds.Left + pos.X;
+                int newRight = m.PartHandler.Bounds.Right + pos.X;
+                bool inBounds = newTop >= 0 && newLeft >= 0 && newBot < Game.MapHandler.Height && newRight < Game.MapHandler.Width;
+
+                if (!inBounds)
+                {
+                    Game.MessagePanel.Add("[color=warn]Alert[/color]: Invalid coordinates, teleport modified");
+                }
+
+                Game.MapHandler.ForceSetMechPosition(m, pos);
+                return new WaitCommand(m);
+            }
+
+            var p = new Part("Portable Teleporter", 3, 3, tiles);
+            p.Add(new StabilityComponent(30));
+            p.Add(new HeatComponent(20, 0, 0, 0));
+            p.Add(new ActivateComponent(target, teleport, cooldown));
+            return p;
+        }
+
         //internal static Weapon BuildSword()
         //{
         //    static ICommand attack(Mech m, IEnumerable<Loc> targets)
@@ -190,19 +221,23 @@ namespace Mecurl.Parts
             double chance = Game.Rand.NextDouble();
             double chance2 = Game.Rand.NextDouble();
 
-            if (chance < 0.5)
+            if (chance < 0.4)
             {
                 if (chance2 < 0.5)
                     return BuildSmallLaser();
                 else
                     return BuildSmallMissile(Game.Rand.NextDouble() < 0.5);
             }
-            else if (chance < 0.8)
+            else if (chance < 0.75)
             {
                 if (chance2 < 0.5)
                     return BuildLargeLaser();
                 else
                     return BuildSniper();
+            }
+            else if (chance < 0.85)
+            {
+                return BuildTeleporter();
             }
             else
             {

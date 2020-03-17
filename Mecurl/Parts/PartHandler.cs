@@ -46,13 +46,13 @@ namespace Mecurl.Parts
         public bool Add(Part p)
         {
             // check space available
-            foreach (Part existing in PartList)
-            {
-                if (p.Intersects(existing))
-                {
-                    return false;
-                }
-            }
+            //foreach (Part existing in PartList)
+            //{
+            //    if (p.Intersects(existing))
+            //    {
+            //        return false;
+            //    }
+            //}
             PartList.Add(p);
 
             // update bounding box

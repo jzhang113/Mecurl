@@ -28,6 +28,9 @@ namespace Mecurl
         internal static PartHandler Blueprint { get; set; }
         internal static List<CorePart> AvailCores { get; private set; }
         internal static List<Part> AvailParts { get; private set; }
+        internal static List<PartHandler> Hangar;
+        internal static int MechIndex;
+
         internal static double Scrap { get; set; }
         internal static MissionInfo NextMission { get; set; }
         internal static int Year { get; set; }
@@ -66,7 +69,7 @@ namespace Mecurl
                 [typeof(NormalState)] = _mapLayer,
                 [typeof(TargettingState)] = _mapLayer,
                 [typeof(MenuState)] = _mainLayer,
-                [typeof(IntermissionState)] = _mainLayer,
+                [typeof(IntermissionFrameState)] = _mainLayer,
             });
 
             AnimationHandler = new AnimationHandler();
@@ -117,11 +120,11 @@ namespace Mecurl
             for (int i = 0; i < 5; i++)
             {
                 var missionInfo = new MissionInfo();
-                missionInfo.MapWidth = Math.Min(80 + 25 * i, 200);
-                missionInfo.MapHeight = Math.Min(80 + 25 * i, 200);
+                missionInfo.MapWidth = Math.Min(100 + 10 * i, 150);
+                missionInfo.MapHeight = Math.Min(100 + 10 * i, 150);
                 missionInfo.Difficulty = i + 1;
                 missionInfo.Enemies = i + 1;
-                missionInfo.RewardScrap = (int)(Rand.Next(50, 70) * EngineConsts.REPAIR_COST * (0.6 * Difficulty + 0.4));
+                missionInfo.RewardScrap = (int)(Rand.Next(50, 70) * EngineConsts.REPAIR_COST * (1 + 0.5 * i));
                 missionInfo.RewardPart = PartFactory.BuildRandom();
                 _missions[i] = missionInfo;
             }
@@ -134,9 +137,11 @@ namespace Mecurl
             var l2 = PartFactory.BuildLeg();
             l2.Center = new Loc(2, 0);
 
+            var m1 = PartFactory.BuildSmallMissile(true);
+            var m2 = PartFactory.BuildSmallMissile(false);
+
             AvailParts = new List<Part>() {
-                PartFactory.BuildSmallMissile(true),
-                PartFactory.BuildSmallMissile(false),
+                m1, m2,
                 l1, l2
             };
             NextMission = GenerateMission();
@@ -144,6 +149,21 @@ namespace Mecurl
             Scrap = 0;
             Difficulty = 0;
             Year = Game.Rand.Next(2100, 2200);
+
+            Hangar = new List<PartHandler>();
+            CorePart core = Game.AvailCores[0];
+            Part w1 = Game.AvailParts[0];
+            Part w2 = Game.AvailParts[1];
+
+            var ph = new PartHandler(core);
+            for (int i = 0; i < Game.AvailParts.Count; i++)
+            {
+                ph.Add(Game.AvailParts[i]);
+            }
+            ph.WeaponGroup.Add(w1, 0);
+            ph.WeaponGroup.Add(w2, 0);
+            Hangar.Add(ph);
+            MechIndex = 0;
 
             _dead = false;
         }
@@ -212,7 +232,7 @@ namespace Mecurl
             AnimationHandler.Draw(_mapLayer);
 
             bool inMission = StateHandler.Peek().Match(
-                some: state => !(state is MenuState) && !(state is IntermissionState),
+                some: state => !(state is MenuState) && !(state is IntermissionFrameState),
                 none: () => false);
 
             if (inMission)

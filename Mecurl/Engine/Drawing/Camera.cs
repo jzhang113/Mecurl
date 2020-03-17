@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Mecurl;
+using System;
 
 namespace Engine.Drawing
 {
@@ -17,8 +18,8 @@ namespace Engine.Drawing
             int startY = Math.Max(center.Y - (screenHeight / 2), 0);
 
             // set right and bottom limits for the camera
-            const int xDiff = EngineConsts.MAP_WIDTH - screenWidth;
-            const int yDiff = EngineConsts.MAP_HEIGHT - screenHeight;
+            int xDiff = Game.MapHandler.Width - screenWidth;
+            int yDiff = Game.MapHandler.Height - screenHeight;
             X = xDiff < 0 ? 0 : Math.Min(xDiff, startX);
             Y = yDiff < 0 ? 0 : Math.Min(yDiff, startY);
         }

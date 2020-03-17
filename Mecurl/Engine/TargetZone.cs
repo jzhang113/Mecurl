@@ -20,18 +20,20 @@ namespace Engine
         public int Range { get; }
         public int Radius { get; }
         public bool Projectile { get; }
+        public bool Directional { get; }
         public ICollection<Loc> Trail { get; }
 
         public bool Pierce { get; }
 
         private ICollection<Loc> Targets { get; }
 
-        public TargetZone(TargetShape shape, int range = 1, int radius = 0, bool projectile = true)
+        public TargetZone(TargetShape shape, int range = 1, int radius = 0, bool projectile = true, bool directional = true)
         {
             Shape = shape;
             Range = range;
             Radius = radius;
             Projectile = projectile;
+            Directional = directional;
             Trail = new List<Loc>();
             Targets = new List<Loc>();
 
@@ -47,7 +49,7 @@ namespace Engine
             foreach (Loc point in map.GetPointsInRadius(origin, Range, m))
             {
                 var nearest = Distance.GetNearestDirection(point, origin);
-                if (nearest != facing && nearest != facing.Left() && nearest != facing.Right())
+                if (Directional && nearest != facing && nearest != facing.Left() && nearest != facing.Right())
                 {
                     continue;
                 }

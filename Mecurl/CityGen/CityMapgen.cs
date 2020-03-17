@@ -286,9 +286,8 @@ namespace Mecurl.CityGen
                 }
 
                 var m = new Mech(new Loc(1,1), 'x', Color.Red, Map, ph);
-                m.Pos = ForcePlaceActor(m.PartHandler.Bounds);
-
-                Map.AddActor(m);
+                Loc pos = Map.GetRandomOpenPoint();
+                Map.AddMech(m, pos);
             }
 
             // find a sufficiently large place to place the mech
@@ -302,36 +301,17 @@ namespace Mecurl.CityGen
                     // adjust the player position so that the top left corner of playerBounds is on
                     // the returned position
                     player.Pos = new Loc(pos.X - playerBounds.Left, pos.Y - playerBounds.Top);
+                    Map.AddActor(player);
                 },
                 none: () =>
                 {
-                    player.Pos = ForcePlaceActor(playerBounds);
+                    // if we can't find a place to drop the player, just pick a random spot and
+                    // destroy any offending building tiles
+                    Loc pos = Map.GetRandomOpenPoint();
+                    Map.AddMech(player, pos);
                 });
 
-            Map.AddActor(player);
             Game.Player = player;
-        }
-
-        private Loc ForcePlaceActor(Rectangle playerBounds)
-        {
-            // if we can't find a place to drop the player, just pick a random spot and
-            // destroy any offending building tiles
-            Loc pos = Map.GetRandomOpenPoint();
-
-            // since GetRandomOpenPoint doesn't respect clearance, we clamp the coordinates
-            // to avoid part of the mech being out of bounds
-            int xPos = Math.Clamp(pos.X, playerBounds.Width, Width - playerBounds.Width);
-            int yPos = Math.Clamp(pos.Y, playerBounds.Height, Height - playerBounds.Height);
-            
-            for (int x = playerBounds.Left; x < playerBounds.Right; x++)
-            {
-                for (int y = playerBounds.Top; y < playerBounds.Bottom; y++)
-                {
-                    Map.Field[x + xPos, y + yPos].IsWall = false;
-                }
-            }
-
-            return new Loc(xPos, yPos);
         }
 
         protected override void PlaceItems()

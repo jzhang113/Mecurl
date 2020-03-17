@@ -66,5 +66,6 @@
         public static RotateChar dbc = new RotateChar('╬');
         public static RotateChar dbv = new RotateChar('║', '═');
         public static RotateChar dbh = dbv.Right;
+        public static RotateChar x = new RotateChar('x');
     }
 }

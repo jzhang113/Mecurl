@@ -69,6 +69,12 @@ namespace Engine.Map
             return true;
         }
 
+        internal void AddMech(Mecurl.Actors.Mech mech, in Loc pos)
+        {
+            ForceSetMechPosition(mech, pos);
+            BaseGame.EventScheduler.AddActor(mech);
+        }
+
         public Option<BaseActor> GetActor(in Loc pos) =>
             Units.TryGetValue(ToIndex(pos), out BaseActor actor) ? Option.Some(actor) : Option.None<BaseActor>();
 
@@ -97,14 +103,53 @@ namespace Engine.Map
 
             tile.IsOccupied = false;
             tile.BlocksLight = false;
-            Units.Remove(ToIndex(actor.Pos));
-            if (actor is Mecurl.Actors.Mech) RemoveFromMechTileMap(actor);
+            if (Units.Remove(ToIndex(actor.Pos)) && actor is Mecurl.Actors.Mech)
+            {
+                RemoveFromMechTileMap(actor);
+            }
 
             actor.Pos = pos;
             newTile.IsOccupied = true;
             newTile.BlocksLight = actor.BlocksLight;
             Units.Add(ToIndex(pos), actor);
             if (actor is Mecurl.Actors.Mech) AddToMechTileMap(actor, pos);
+
+            return true;
+        }
+
+        // place a mech and destroy any walls in the way
+        public bool ForceSetMechPosition(BaseActor actor, in Loc pos)
+        {
+            if (!(actor is Mecurl.Actors.Mech mech)) return false;
+
+            Tile tile = Field[actor.Pos];
+            tile.IsOccupied = false;
+            tile.BlocksLight = false;
+            if (Units.Remove(ToIndex(actor.Pos)))
+            {
+                RemoveFromMechTileMap(actor);
+            }
+
+            // TODO: fix this clamping to be precise
+            var bounds = mech.PartHandler.Bounds;
+            int xPos = Math.Clamp(pos.X, bounds.Width, Width - bounds.Width);
+            int yPos = Math.Clamp(pos.Y, bounds.Height, Height - bounds.Height);
+            var clampPos = new Loc(xPos, yPos);
+
+            actor.Pos = clampPos;
+            Tile newTile = Field[clampPos];
+            newTile.IsOccupied = true;
+            newTile.BlocksLight = actor.BlocksLight;
+            Units.Add(ToIndex(clampPos), actor);
+            AddToMechTileMap(actor, clampPos);
+
+            for (int x = bounds.Left; x < bounds.Right; x++)
+            {
+                for (int y = bounds.Top; y < bounds.Bottom; y++)
+                {
+                    Field[x + xPos, y + yPos].IsWall = false;
+                }
+            }
 
             return true;
         }
