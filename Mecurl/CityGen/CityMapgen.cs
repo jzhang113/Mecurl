@@ -13,7 +13,7 @@ namespace Mecurl.CityGen
     {
         private readonly MissionInfo _missionInfo;
 
-        public CityMapgen(MissionInfo info) : base(info.MapWidth, info.MapHeight, info.Difficulty, Game.Rand)
+        public CityMapgen(BaseMapHandler map, MissionInfo info) : base(map, Game.Rand)
         {
             _missionInfo = info;
         }
@@ -200,122 +200,6 @@ namespace Mecurl.CityGen
                     Map.Field[s].IsWall = false;
                 }
             }
-        }
-
-        private PartHandler BuildMissileMech()
-        {
-            var core = PartFactory.BuildSmallCore();
-            var w1 = PartFactory.BuildSmallMissile(true);
-            var w2 = PartFactory.BuildSmallMissile(false);
-            var l1 = PartFactory.BuildLeg();
-            l1.Center = new Loc(-2, 0);
-            var l2 = PartFactory.BuildLeg();
-            l2.Center = new Loc(2, 0);
-
-            var ph = new PartHandler(core, new List<Part>()
-            {
-                l1, l2,
-                w1, w2
-            });
-
-            ph.WeaponGroup.Add(w1, 0);
-            ph.WeaponGroup.Add(w2, 0);
-            return ph;
-        }
-
-        private PartHandler BuildLaserMech()
-        {
-            var core = PartFactory.BuildSmallCore();
-            var w1 = PartFactory.BuildSmallLaser();
-            w1.Center = new Loc(-3, 0);
-            var w2 = PartFactory.BuildSmallLaser();
-            w2.Center = new Loc(3, 0);
-            var l1 = PartFactory.BuildLeg();
-            l1.Center = new Loc(-2, 0);
-            var l2 = PartFactory.BuildLeg();
-            l2.Center = new Loc(2, 0);
-
-            var ph = new PartHandler(core, new List<Part>()
-            {
-                l1, l2,
-                w1, w2
-            });
-
-            ph.WeaponGroup.Add(w1, 0);
-            ph.WeaponGroup.Add(w2, 0);
-            return ph;
-        }
-
-        private PartHandler BuildSniperMech()
-        {
-            var core = PartFactory.BuildSmallCore();
-            var w1 = PartFactory.BuildSniper();
-            w1.Center = new Loc(2, -3);
-            var l1 = PartFactory.BuildLeg();
-            l1.Center = new Loc(-2, 1);
-            var l2 = PartFactory.BuildLeg();
-            l2.Center = new Loc(2, 1);
-
-            var ph = new PartHandler(core, new List<Part>()
-            {
-                l1, l2,
-                w1
-            });
-
-            ph.WeaponGroup.Add(w1, 0);
-            return ph;
-        }
-
-        protected override void PlaceActors()
-        {
-            for (int i = 0; i < _missionInfo.Enemies; i++)
-            {
-                double chance = Rand.NextDouble();
-                PartHandler ph;
-                if (chance < 0.5)
-                {
-                    ph = BuildMissileMech();
-                }
-                else if (chance < 0.8)
-                {
-                    ph = BuildLaserMech();
-                }
-                else
-                {
-                    ph = BuildSniperMech();
-                }
-
-                var m = new Mech(new Loc(1,1), 'x', Color.Red, Map, ph);
-                Loc pos = Map.GetRandomOpenPoint();
-                Map.AddMech(m, pos);
-            }
-
-            // find a sufficiently large place to place the mech
-            var player = new Player(new Loc(1, 1), Map, Game.Blueprint);
-            Rectangle playerBounds = player.PartHandler.Bounds;
-            int minClearance = Math.Max(playerBounds.Width, playerBounds.Height);
-
-            Map.GetRandomOpenPoint(minClearance, 50).Match(
-                some: pos =>
-                {
-                    // adjust the player position so that the top left corner of playerBounds is on
-                    // the returned position
-                    player.Pos = new Loc(pos.X - playerBounds.Left, pos.Y - playerBounds.Top);
-                    Map.AddActor(player);
-                },
-                none: () =>
-                {
-                    // if we can't find a place to drop the player, just pick a random spot and
-                    // destroy any offending building tiles
-                    Loc pos = Map.GetRandomOpenPoint();
-                    Map.AddMech(player, pos);
-                });
-
-            Game.Player = player;
-        }
-
-        protected override void PlaceItems()
-        {
         }
 
         // TODO: use a population map to guide randomness

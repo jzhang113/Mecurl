@@ -7,7 +7,7 @@ namespace Mecurl.Actors
 {
     class Player : Mech
     {
-        public Player(in Loc pos, MapHandler map, PartHandler partHandler) : base(pos, '@', Colors.Player, map, partHandler)
+        public Player(in Loc pos, BaseMapHandler map, PartHandler partHandler) : base(pos, '@', Colors.Player, map, partHandler)
         {
             Name = "Player";
             _messages = Game.MessagePanel;

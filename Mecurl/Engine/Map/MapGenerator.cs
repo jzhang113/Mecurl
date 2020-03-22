@@ -9,32 +9,28 @@ namespace Engine.Map
         protected int Width { get; }
         protected int Height { get; }
         protected Random Rand { get; }
-        protected MapHandler Map { get; }
+        protected BaseMapHandler Map { get; }
 
-        protected MapGenerator(int width, int height, int level, Random random)
+        protected MapGenerator(BaseMapHandler map, Random random)
         {
-            Width = width;
-            Height = height;
+            Map = map;
             Rand = random;
 
-            Map = new MapHandler(width, height, level);
+            Width = map.Width;
+            Height = map.Height;
         }
 
-        public MapHandler Generate()
+        public BaseMapHandler Generate()
         {
             CreateMap();
             ComputeClearance();
 
             //PlaceStairs();
-            PlaceActors();
-            PlaceItems();
 
             return Map;
         }
 
         protected abstract void CreateMap();
-        protected abstract void PlaceActors();
-        protected abstract void PlaceItems();
 
         // Calculate and save how much space is around each square
         private void ComputeClearance()

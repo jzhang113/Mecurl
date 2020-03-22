@@ -91,7 +91,7 @@ namespace Mecurl.Commands
                 TimeCost *= 2;
             }
 
-            Game.MapHandler.SetActorPosition(Source, _nextPos);
+            Game.MapHandler.ForceSetMechPosition(Source, _nextPos);
             return Option.None<ICommand>();
         }
     }

@@ -14,6 +14,7 @@ namespace Mecurl
 {
     public class Game : BaseGame
     {
+        public static new MapHandler MapHandler => BaseGame.MapHandler as MapHandler;
         public static MessagePanel MessagePanel { get; private set; }
 
         private readonly LayerInfo _mapLayer;
@@ -184,8 +185,10 @@ namespace Mecurl
 
             MessagePanel.Add($"Mission Start");
 
-            var mapgen = new CityMapgen(info);
-            MapHandler = mapgen.Generate();
+            BaseGame.MapHandler = new MapHandler(info.MapWidth, info.MapHeight, info.Difficulty);
+            var mapgen = new CityMapgen(BaseGame.MapHandler, info);
+            BaseGame.MapHandler = mapgen.Generate();
+            MapHandler.PlaceActors(info, Game.Rand);
             MapHandler.Refresh();
         }
 

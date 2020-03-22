@@ -23,9 +23,9 @@ namespace Mecurl.Actors
         public Direction Facing => PartHandler.Facing;
 
         protected IMessageHandler _messages;
-        protected MapHandler _map;
+        protected BaseMapHandler _map;
 
-        public Mech(in Loc pos, char symbol, Color color, MapHandler map, PartHandler partHandler) : base(pos, 100, symbol, color)
+        public Mech(in Loc pos, char symbol, Color color, BaseMapHandler map, PartHandler partHandler) : base(pos, 100, symbol, color)
         {
             Name = "Mech";
             PartHandler = partHandler;

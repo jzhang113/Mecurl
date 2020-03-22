@@ -7,7 +7,7 @@ using System.Linq;
 
 namespace Engine.Map
 {
-    public class MapHandler
+    public class BaseMapHandler
     {
         public Option<Loc> Exit { get; internal set; }
         public int Width { get; }
@@ -24,14 +24,9 @@ namespace Engine.Map
 
         // keep queue to prevent unnecessary allocations
         private readonly Queue<LocCost> _goals = new Queue<LocCost>();
-
         private readonly Measure _measure;
 
-        // HACK: this should really be a quadtree or something
-        // Tiles of each mech on  the map
-        internal (char, System.Drawing.Color, int)[,] MechTileMap { get; }
-
-        public MapHandler(int width, int height, int level)
+        public BaseMapHandler(int width, int height, int level)
         {
             Width = width;
             Height = height;
@@ -45,8 +40,6 @@ namespace Engine.Map
             Items = new Dictionary<int, BaseItem>();
 
             _measure = EngineConsts.MEASURE;
-
-            MechTileMap = new (char, System.Drawing.Color, int)[width, height];
         }
 
         // Recalculate the state of the world after movements happen. If only light recalculations
@@ -69,12 +62,6 @@ namespace Engine.Map
             return true;
         }
 
-        internal void AddMech(Mecurl.Actors.Mech mech, in Loc pos)
-        {
-            ForceSetMechPosition(mech, pos);
-            BaseGame.EventScheduler.AddActor(mech);
-        }
-
         public Option<BaseActor> GetActor(in Loc pos) =>
             Units.TryGetValue(ToIndex(pos), out BaseActor actor) ? Option.Some(actor) : Option.None<BaseActor>();
 
@@ -86,8 +73,6 @@ namespace Engine.Map
             Tile unitTile = Field[unit.Pos];
             unitTile.IsOccupied = false;
             unitTile.BlocksLight = false;
-
-            if (unit is Mecurl.Actors.Mech) RemoveFromMechTileMap(unit);
 
             BaseGame.EventScheduler.RemoveActor(unit);
             return true;
@@ -103,53 +88,12 @@ namespace Engine.Map
 
             tile.IsOccupied = false;
             tile.BlocksLight = false;
-            if (Units.Remove(ToIndex(actor.Pos)) && actor is Mecurl.Actors.Mech)
-            {
-                RemoveFromMechTileMap(actor);
-            }
+            Units.Remove(ToIndex(actor.Pos));
 
             actor.Pos = pos;
             newTile.IsOccupied = true;
             newTile.BlocksLight = actor.BlocksLight;
             Units.Add(ToIndex(pos), actor);
-            if (actor is Mecurl.Actors.Mech) AddToMechTileMap(actor, pos);
-
-            return true;
-        }
-
-        // place a mech and destroy any walls in the way
-        public bool ForceSetMechPosition(BaseActor actor, in Loc pos)
-        {
-            if (!(actor is Mecurl.Actors.Mech mech)) return false;
-
-            Tile tile = Field[actor.Pos];
-            tile.IsOccupied = false;
-            tile.BlocksLight = false;
-            if (Units.Remove(ToIndex(actor.Pos)))
-            {
-                RemoveFromMechTileMap(actor);
-            }
-
-            // TODO: fix this clamping to be precise
-            var bounds = mech.PartHandler.Bounds;
-            int xPos = Math.Clamp(pos.X, bounds.Width, Width - bounds.Width);
-            int yPos = Math.Clamp(pos.Y, bounds.Height, Height - bounds.Height);
-            var clampPos = new Loc(xPos, yPos);
-
-            actor.Pos = clampPos;
-            Tile newTile = Field[clampPos];
-            newTile.IsOccupied = true;
-            newTile.BlocksLight = actor.BlocksLight;
-            Units.Add(ToIndex(clampPos), actor);
-            AddToMechTileMap(actor, clampPos);
-
-            for (int x = bounds.Left; x < bounds.Right; x++)
-            {
-                for (int y = bounds.Top; y < bounds.Bottom; y++)
-                {
-                    Field[x + xPos, y + yPos].IsWall = false;
-                }
-            }
 
             return true;
         }
@@ -616,7 +560,7 @@ namespace Engine.Map
         #endregion
 
         #region Drawing Methods
-        public void Draw(LayerInfo layer)
+        public virtual void Draw(LayerInfo layer)
         {
             // draw borders
             Terminal.Color(Colors.BorderColor);
@@ -648,12 +592,6 @@ namespace Engine.Map
                     if (tile.IsVisible)
                     {
                         tile.Draw(layer);
-
-                        (char mechTile, System.Drawing.Color color, _) = MechTileMap[newX, newY];
-                        Terminal.Color(color);
-                        Terminal.Layer(2);
-                        layer.Put(dx, dy, mechTile);
-                        Terminal.Layer(1);
                     }
                     else if (tile.IsWall)
                     {
@@ -754,45 +692,5 @@ namespace Engine.Map
         }
 
         internal int ToIndex(in Loc pos) => pos.X + Width * pos.Y;
-
-        // managing the MechTileMap
-        internal void RemoveFromMechTileMap(BaseActor actor)
-        {
-            var mech = (Mecurl.Actors.Mech)actor;
-
-            foreach (var part in mech.PartHandler.PartList)
-            {
-                for (int x = 0; x < part.Bounds.Width; x++)
-                {
-                    for (int y = 0; y < part.Bounds.Height; y++)
-                    {
-                        // we still need to check if a part is not empty in the mech
-                        // otherwise, we might accidentally delete part of something else
-                        int boundsIndex = part.BoundingIndex(x, y);
-                        if (part.IsPassable(boundsIndex)) continue;
-
-                        MechTileMap[x + part.Bounds.Left + actor.Pos.X, y + part.Bounds.Top + actor.Pos.Y] = (' ', Colors.Background, 0);
-                    }
-                }
-            }
-        }
-
-        internal void AddToMechTileMap(BaseActor actor, Loc pos)
-        {
-            var mech = (Mecurl.Actors.Mech)actor;
-            foreach (var part in mech.PartHandler.PartList)
-            {
-                for (int x = 0; x < part.Bounds.Width; x++)
-                {
-                    for (int y = 0; y < part.Bounds.Height; y++)
-                    {
-                        int boundsIndex = part.BoundingIndex(x, y);
-                        if (part.IsPassable(boundsIndex)) continue;
-
-                        MechTileMap[x + part.Bounds.Left + pos.X, y + part.Bounds.Top + pos.Y] = (part.GetPiece(boundsIndex), actor.Color, actor.Id);
-                    }
-                }
-            }
-        }
     }
 }

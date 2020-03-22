@@ -12,6 +12,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="DeBroglie" Version="0.6.0" />
     <PackageReference Include="OptimizedPriorityQueue" Version="4.2.0" />
     <PackageReference Include="Optional" Version="4.0.0" />
     <PackageReference Include="RexReader" Version="1.0.1" />
@@ -59,6 +60,10 @@
     <None Update="square.ttf">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Engine\Interfaces\" />
   </ItemGroup>
 
 </Project>

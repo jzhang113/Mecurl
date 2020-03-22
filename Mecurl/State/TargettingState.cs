@@ -13,7 +13,7 @@ namespace Mecurl.State
 {
     internal class TargettingState : IState
     {
-        private readonly MapHandler _map;
+        private readonly BaseMapHandler _map;
         private readonly BaseActor _source;
         private readonly TargetZone _targetZone;
         private readonly Func<IEnumerable<Loc>, Option<ICommand>> _callback;
@@ -29,7 +29,7 @@ namespace Mecurl.State
         private readonly Measure _measure;
 
         public TargettingState(
-            MapHandler map,
+            BaseMapHandler map,
             BaseActor source,
             Measure measure,
             TargetZone zone,

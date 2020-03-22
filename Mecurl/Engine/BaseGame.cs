@@ -7,7 +7,7 @@ namespace Engine
 {
     public abstract class BaseGame
     {
-        public static MapHandler MapHandler { get; protected set; }
+        public static BaseMapHandler MapHandler { get; protected set; }
         public static StateHandler StateHandler { get; protected set; }
         public static EventScheduler EventScheduler { get; protected set; }
         public static AnimationHandler AnimationHandler { get; protected set; }
