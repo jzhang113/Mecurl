@@ -9,7 +9,7 @@ namespace Engine
     public class EventScheduler
     {
         internal static readonly IDictionary<ISchedulable, int> _schedule = new Dictionary<ISchedulable, int>();
-        private static readonly IDictionary<Type, List<Func<ICommand, Option<ICommand>>>> _subscribers;
+        private static readonly IDictionary<Type, List<Action<ICommand>>> _subscribers;
 
         private readonly Type _playerType;
 
@@ -17,14 +17,14 @@ namespace Engine
 
         static EventScheduler()
         {
-            _subscribers = new Dictionary<Type, List<Func<ICommand, Option<ICommand>>>>();
+            _subscribers = new Dictionary<Type, List<Action<ICommand>>>();
             Type commandSupertype = typeof(ICommand);
 
             foreach (Type commandType in AppDomain.CurrentDomain.GetAssemblies()
                 .SelectMany(s => s.GetTypes())
                 .Where(p => commandSupertype.IsAssignableFrom(p) && p.IsClass))
             {
-                _subscribers.Add(commandType, new List<Func<ICommand, Option<ICommand>>>());
+                _subscribers.Add(commandType, new List<Action<ICommand>>());
             }
         }
 
@@ -54,7 +54,7 @@ namespace Engine
             _schedule.Remove(unit);
         }
 
-        public void Subscribe<T>(Func<ICommand, Option<ICommand>> func) where T : ICommand
+        public void Subscribe<T>(Action<ICommand> func) where T : ICommand
         {
             _subscribers[typeof(T)].Add(func);
         }
@@ -117,36 +117,18 @@ namespace Engine
         {
             if (entity == null) return;
 
-            Option<ICommand> replacement = action;
-            int timeCost = 0;
-
-            while (replacement.HasValue)
+            action.MatchSome(command =>
             {
-                replacement.MatchSome(command =>
+                foreach (var handler in _subscribers[command.GetType()])
                 {
-                    replacement = Option.None<ICommand>();
-                    timeCost = command.TimeCost;
-                    var commandType = command.GetType();
+                    handler.Invoke(command);
+                }
 
-                    foreach (var handler in _subscribers[commandType])
-                    {
-                        Option<ICommand> result = handler.Invoke(command);
-                        if (result.HasValue)
-                        {
-                            // Theoretically, only at most one handler should generate replacement
-                            // commands for every command. However, it is possible for each handler
-                            // to return some replacement.
-                            // This shouldn't happen, but we can't guarantee that it doesn't (nor that
-                            // it won't happen in the future), so we'll just log a message for now
-                            System.Diagnostics.Debug.WriteLineIf(replacement.HasValue, "Two handlers generated replacement events");
-
-                            replacement = result;
-                        }
-                    }
-                });
-            }
-
-            _schedule[entity] += timeCost;
+                if (_schedule.ContainsKey(entity))
+                {
+                    _schedule[entity] += command.TimeCost;
+                }
+            });
         }
     }
 }

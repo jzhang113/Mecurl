@@ -86,13 +86,24 @@ namespace Mecurl
             {
                 var ac = (AttackCommand)c;
                 ac.Animation.MatchSome(anim => AnimationHandler.Add(ac.Source.Id, anim));
-                return Option.None<ICommand>();
             });
             EventScheduler.Subscribe<DelayAttackCommand>(c =>
             {
                 var dc = (DelayAttackCommand)c;
                 EventScheduler.AddEvent(new DelayAttack(dc.Delay, dc.Attack), dc.Delay);
-                return Option.None<ICommand>();
+            });
+
+            EventScheduler.Subscribe<MechDeathEvent>(c =>
+            {
+                var mde = (MechDeathEvent)c;
+                Mech mech = mde.Source;
+                MapHandler.RemoveActor(mech);
+
+                if (MapHandler.Field[mech.Pos].IsVisible)
+                {
+                    MessagePanel.Add($"[color=info]Info[/color]: {mech.Name} destroyed");
+                    MapHandler.Refresh();
+                }
             });
 
             Reset();

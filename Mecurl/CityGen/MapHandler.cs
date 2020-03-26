@@ -38,10 +38,9 @@ namespace Mecurl.CityGen
                 RemoveFromMechTileMap(mech);
             }
 
-            // TODO: fix this clamping to be precise
             var bounds = mech.PartHandler.Bounds;
-            int xPos = Math.Clamp(pos.X, bounds.Width, Width - bounds.Width);
-            int yPos = Math.Clamp(pos.Y, bounds.Height, Height - bounds.Height);
+            int xPos = Math.Clamp(pos.X, -bounds.Left, Width - bounds.Right);
+            int yPos = Math.Clamp(pos.Y, -bounds.Top, Height - bounds.Bottom);
             var clampPos = new Loc(xPos, yPos);
 
             mech.Pos = clampPos;

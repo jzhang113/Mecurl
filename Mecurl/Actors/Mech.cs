@@ -38,15 +38,7 @@ namespace Mecurl.Actors
 
         public override Option<ICommand> TriggerDeath()
         {
-            _map.RemoveActor(this);
-
-            if (_map.Field[Pos].IsVisible)
-            {
-                Game.MessagePanel.Add($"[color=info]Info[/color]: {Name} destroyed");
-                _map.Refresh();
-            }
-
-            return Option.None<ICommand>();
+            return Option.Some<ICommand>(new MechDeathEvent(this));
         }
 
         public override Option<ICommand> GetAction()
