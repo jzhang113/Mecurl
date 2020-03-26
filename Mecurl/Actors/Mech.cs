@@ -57,7 +57,7 @@ namespace Mecurl.Actors
             if (CurrentHeat > PartHandler.TotalHeatCapacity && PartHandler.Coolant > 0)
             {
                 UseCoolant();
-                return Option.Some<ICommand>(new WaitCommand(this, EngineConsts.COOL_USE_TICKS));
+                return Option.Some<ICommand>(new WaitCommand(EngineConsts.COOL_USE_TICKS));
             }
 
             // dumb mech ai - order of priorities

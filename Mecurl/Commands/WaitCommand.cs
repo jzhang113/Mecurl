@@ -8,21 +8,15 @@ namespace Mecurl.Commands
     internal class WaitCommand : ICommand
     {
         public int TimeCost { get; }
-        public Option<IAnimation> Animation => Option.None<IAnimation>();
 
         public WaitCommand(Mech source)
         {
             TimeCost = source.PartHandler.GetMoveSpeed();
         }
 
-        public WaitCommand(Mech source, int ticks)
+        public WaitCommand(int ticks)
         {
             TimeCost = ticks;
-        }
-
-        public Option<ICommand> Execute()
-        {
-            return Option.None<ICommand>();
         }
     }
 }

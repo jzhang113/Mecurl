@@ -61,7 +61,7 @@ namespace Mecurl.State
 
                 case NormalInput.UseCoolant:
                     player.UseCoolant();
-                    return Option.Some<ICommand>(new WaitCommand(player, EngineConsts.COOL_USE_TICKS));
+                    return Option.Some<ICommand>(new WaitCommand(EngineConsts.COOL_USE_TICKS));
 
             }
 

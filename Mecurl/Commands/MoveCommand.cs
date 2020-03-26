@@ -9,15 +9,12 @@ namespace Mecurl.Commands
     {
         public Mech Source { get; }
         public int TimeCost { get; private set; }
-
-        public Option<IAnimation> Animation { get; private set; }
-
-        private readonly Loc _nextPos;
+        public Loc NextPos { get; }
 
         public MoveCommand(Mech source, in Loc pos)
         {
             Source = source;
-            _nextPos = pos;
+            NextPos = pos;
             TimeCost = source.PartHandler.GetMoveSpeed();
         }
 
@@ -25,8 +22,8 @@ namespace Mecurl.Commands
         {
             // Cancel out of bound moves.
             var bounds = Source.PartHandler.Bounds;
-            var topleft = new Loc(_nextPos.X + bounds.Left, _nextPos.Y + bounds.Top);
-            var botright = new Loc(_nextPos.X + bounds.Right - 1, _nextPos.Y + bounds.Bottom - 1);
+            var topleft = new Loc(NextPos.X + bounds.Left, NextPos.Y + bounds.Top);
+            var botright = new Loc(NextPos.X + bounds.Right - 1, NextPos.Y + bounds.Bottom - 1);
 
             if (!Game.MapHandler.Field.IsValid(topleft) || !Game.MapHandler.Field.IsValid(botright))
             {
@@ -47,8 +44,8 @@ namespace Mecurl.Commands
                         int boundsIndex = p.BoundingIndex(x, y);
                         if (p.IsPassable(boundsIndex)) continue;
 
-                        int newX = x + p.Bounds.Left + _nextPos.X;
-                        int newY = y + p.Bounds.Top + _nextPos.Y;
+                        int newX = x + p.Bounds.Left + NextPos.X;
+                        int newY = y + p.Bounds.Top + NextPos.Y;
                         var tile = Game.MapHandler.Field[newX, newY];
 
                         if (tile.IsWall)
@@ -91,7 +88,7 @@ namespace Mecurl.Commands
                 TimeCost *= 2;
             }
 
-            Game.MapHandler.ForceSetMechPosition(Source, _nextPos);
+            Game.MapHandler.ForceSetMechPosition(Source, NextPos);
             return Option.None<ICommand>();
         }
     }

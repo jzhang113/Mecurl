@@ -1,12 +1,13 @@
 ﻿using BearLib;
 using Engine;
 using Engine.Drawing;
-using Engine.Map;
 using Mecurl.Actors;
 using Mecurl.CityGen;
+using Mecurl.Commands;
 using Mecurl.Parts;
 using Mecurl.State;
 using Mecurl.UI;
+using Optional;
 using System;
 using System.Collections.Generic;
 
@@ -75,7 +76,24 @@ namespace Mecurl
 
             AnimationHandler = new AnimationHandler();
             MessagePanel = new MessagePanel(EngineConsts.MESSAGE_HISTORY_COUNT);
-            EventScheduler = new EventScheduler(typeof(Player), AnimationHandler);
+            EventScheduler = new EventScheduler(typeof(Player));
+
+            // attach event handlers
+            EventScheduler.Subscribe<MoveCommand>(c => ((MoveCommand)c).Execute());
+            EventScheduler.Subscribe<TurnCommand>(c => ((TurnCommand)c).Execute());
+            EventScheduler.Subscribe<AttackCommand>(c => ((AttackCommand)c).Execute());
+            EventScheduler.Subscribe<AttackCommand>(c =>
+            {
+                var ac = (AttackCommand)c;
+                ac.Animation.MatchSome(anim => AnimationHandler.Add(ac.Source.Id, anim));
+                return Option.None<ICommand>();
+            });
+            EventScheduler.Subscribe<DelayAttackCommand>(c =>
+            {
+                var dc = (DelayAttackCommand)c;
+                EventScheduler.AddEvent(new DelayAttack(dc.Delay, dc.Attack), dc.Delay);
+                return Option.None<ICommand>();
+            });
 
             Reset();
             ConfigureTerminal();

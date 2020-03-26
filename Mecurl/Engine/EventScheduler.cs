@@ -9,15 +9,28 @@ namespace Engine
     public class EventScheduler
     {
         internal static readonly IDictionary<ISchedulable, int> _schedule = new Dictionary<ISchedulable, int>();
+        private static readonly IDictionary<Type, List<Func<ICommand, Option<ICommand>>>> _subscribers;
+
         private readonly Type _playerType;
-        private readonly AnimationHandler _animationHandler;
 
         public static int Turn { get; private set; }
 
-        public EventScheduler(Type playerType, AnimationHandler handler)
+        static EventScheduler()
+        {
+            _subscribers = new Dictionary<Type, List<Func<ICommand, Option<ICommand>>>>();
+            Type commandSupertype = typeof(ICommand);
+
+            foreach (Type commandType in AppDomain.CurrentDomain.GetAssemblies()
+                .SelectMany(s => s.GetTypes())
+                .Where(p => commandSupertype.IsAssignableFrom(p) && p.IsClass))
+            {
+                _subscribers.Add(commandType, new List<Func<ICommand, Option<ICommand>>>());
+            }
+        }
+
+        public EventScheduler(Type playerType)
         {
             _playerType = playerType;
-            _animationHandler = handler;
             Turn = 0;
         }
 
@@ -39,6 +52,11 @@ namespace Engine
         internal void RemoveActor(BaseActor unit)
         {
             _schedule.Remove(unit);
+        }
+
+        public void Subscribe<T>(Func<ICommand, Option<ICommand>> func) where T : ICommand
+        {
+            _subscribers[typeof(T)].Add(func);
         }
 
         // update a single tick, returns true if we should process player input
@@ -97,31 +115,38 @@ namespace Engine
 
         internal void ExecuteCommand(ISchedulable entity, Option<ICommand> action)
         {
-            action.MatchSome(command =>
+            if (entity == null) return;
+
+            Option<ICommand> replacement = action;
+            int timeCost = 0;
+
+            while (replacement.HasValue)
             {
-                // note that Execute is allowed to modify TimeCost (which is necessary to detect
-                // some things like wall walking)
-                Option<ICommand> retry = command.Execute();
-                Option<IAnimation> animation = command.Animation;
-                int timeCost = command.TimeCost;
-
-                while (retry.HasValue)
+                replacement.MatchSome(command =>
                 {
-                    retry.MatchSome(c =>
+                    replacement = Option.None<ICommand>();
+                    timeCost = command.TimeCost;
+                    var commandType = command.GetType();
+
+                    foreach (var handler in _subscribers[commandType])
                     {
-                        timeCost = c.TimeCost;
-                        retry = c.Execute();
-                        animation = c.Animation;
-                    });
-                }
+                        Option<ICommand> result = handler.Invoke(command);
+                        if (result.HasValue)
+                        {
+                            // Theoretically, only at most one handler should generate replacement
+                            // commands for every command. However, it is possible for each handler
+                            // to return some replacement.
+                            // This shouldn't happen, but we can't guarantee that it doesn't (nor that
+                            // it won't happen in the future), so we'll just log a message for now
+                            System.Diagnostics.Debug.WriteLineIf(replacement.HasValue, "Two handlers generated replacement events");
 
-                _schedule[entity] += timeCost;
+                            replacement = result;
+                        }
+                    }
+                });
+            }
 
-                bool isEvent = !(entity is BaseActor);
-                // events get a special id of -1 for animations
-                int animId = isEvent ? -1 : entity.Id;
-                animation.MatchSome(anim => _animationHandler.Add(animId, anim));
-            });
+            _schedule[entity] += timeCost;
         }
     }
 }

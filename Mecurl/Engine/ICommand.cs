@@ -2,15 +2,14 @@
 
 namespace Engine
 {
+    // Commands are expressions of intent - in other words, they capture any necessary information
+    // to handle a particular action, but actual execution is left to specific systems (and the
+    // handlers should be attached using EventScheduler.Subscribe)
+    // A system may generate a replacement command - for example, movement often needs to do a
+    // validity pre-check and may either generate a successful or failed variant
     public interface ICommand
     {
-        // Visual effects when performing an Action.
-        Option<IAnimation> Animation { get; }
-
-        // Execute the Action and return an alternative if it fails. Returns None on success.
-        Option<ICommand> Execute();
-
-        // How long it takes to recover (aka speed) - baseline is 120
+        // How long it takes to recover (aka speed) - baseline is EngineConsts.TURN_TICKS
         int TimeCost { get; }
     }
 }

@@ -44,10 +44,7 @@ namespace Engine
                 if (animation == null)
                     continue;
 
-                // id -1 is for events, which doesn't respect turn cancelling
-                // this is because the animation of events are instantiated before they occur
-                // meaning that it looks like it is an old animation from several turns ago
-                if (animation.Update(frameTime) || (id != -1 && EventScheduler.Turn > animation.Turn + 1))
+                if (animation.Update(frameTime))
                 {
                     animation.Cleanup();
                     queue.Remove(animation);

@@ -10,7 +10,6 @@ namespace Mecurl.Commands
     {
         public Mech Source { get; }
         public int TimeCost { get; }
-        public Option<IAnimation> Animation => Option.None<IAnimation>();
 
         // we only actually care about two specific rotations, 90 to the left and 90 to the right
         private readonly bool _rightTurn;
