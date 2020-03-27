@@ -1,7 +1,5 @@
 ﻿using Engine;
 using Engine.Map;
-using Mecurl.Actors;
-using Mecurl.Parts;
 using Priority_Queue;
 using System;
 using System.Collections.Generic;
@@ -212,9 +210,9 @@ namespace Mecurl.CityGen
             var StartX = Rand.Next(20, EngineConsts.MAP_WIDTH - 20);
             var StartY = Rand.Next(20, EngineConsts.MAP_HEIGHT - 20);
             var Length = Rand.NextDouble() * 15 + 10;
-            var Angle = Rand.NextDouble() * 2 * Math.PI;
-            var r1 = new Road(0, StartX, StartY, Length, Angle, 3, 0, 0);
-            var r2 = new Road(0, StartX, StartY, Length, Angle + Math.PI, 3, 0, 0);
+            var Angle = Math.PI / 2 * Rand.Next(0, 4);
+            var r1 = new Road(0, StartX, StartY, Length, Angle, 5, 0, 0);
+            var r2 = new Road(0, StartX, StartY, Length, Angle + Math.PI, 5, 0, 0);
 
             potentialRoads.Enqueue(r1, 0);
             potentialRoads.Enqueue(r2, 0);
@@ -283,8 +281,8 @@ namespace Mecurl.CityGen
                 return newRoads;
 
             newRoads[0] = new Road(
-                prevRoad.Generation, prevRoad.EndX, prevRoad.EndY, Rand.NextDouble() * 15 + 10,
-                prevRoad.Angle + Rand.NextDouble() * Math.PI / 4 - Math.PI / 8, prevRoad.Width, prevRoad.LastSplitL + 1, prevRoad.LastSplitR + 1);
+                prevRoad.Generation, prevRoad.EndX, prevRoad.EndY, Rand.NextDouble() * prevRoad.Width * 2 + 10,
+                prevRoad.Angle + Rand.NextDouble() * Math.PI / 16 - Math.PI / 32, prevRoad.Width, prevRoad.LastSplitL + 1, prevRoad.LastSplitR + 1);
 
             const double baseSplitProb = 0.4;
             double splitProb = baseSplitProb + 0.2 * (double)prevRoad.LastSplitL;
@@ -309,15 +307,15 @@ namespace Mecurl.CityGen
             int roadWidth;
             if (prevRoad.Generation == 0)
                 roadWidth = prevRoad.Width - 1;
-            else if (prevRoad.Width == 1)
-                roadWidth = 1;
+            else if (prevRoad.Width == 2)
+                roadWidth = 2;
             else if (Rand.NextDouble() > 0.4)
                 roadWidth = prevRoad.Width - 1;
             else
                 roadWidth = prevRoad.Width;
 
             return new Road(
-                prevRoad.Generation + 1, prevRoad.EndX, prevRoad.EndY, Rand.NextDouble() * 8 + 12,
+                prevRoad.Generation + 1, prevRoad.EndX, prevRoad.EndY, Rand.NextDouble() * roadWidth * 2 + 12,
                 prevRoad.Angle + offset, roadWidth, 0, 0);
         }
 
