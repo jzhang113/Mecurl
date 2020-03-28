@@ -2,32 +2,6 @@
 {
     static class CharUtils
     {
-        // TODO: rubble should probably be formalized into a class
-        public static char GetRubbleSymbol()
-        {
-            double rubble = Game.VisRand.NextDouble();
-            if (rubble < 0.07)
-            {
-                return '~';
-            }
-            if (rubble < 0.3)
-            {
-                return '`';
-            }
-            if (rubble < 0.5)
-            {
-                return ';';
-            }
-            else if (rubble < 0.8)
-            {
-                return ',';
-            }
-            else
-            {
-                return '.';
-            }
-        }
-
         // cp437 and unicode codepoints don't line up outside of the range between 32 and 126
         // (aka your standard letters and characters). Since we care about some of these, we
         // need a translation mapping

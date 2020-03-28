@@ -30,9 +30,9 @@ namespace Mecurl.CityGen
         // place a mech and destroy any walls in the way
         internal bool ForceSetMechPosition(Mech mech, in Loc pos)
         {
-            Tile tile = Field[mech.Pos];
-            tile.IsOccupied = false;
-            tile.BlocksLight = false;
+            Tile mechCenterTile = Field[mech.Pos];
+            mechCenterTile.IsOccupied = false;
+            mechCenterTile.BlocksLight = false;
             if (Units.Remove(ToIndex(mech.Pos)))
             {
                 RemoveFromMechTileMap(mech);
@@ -54,7 +54,12 @@ namespace Mecurl.CityGen
             {
                 for (int y = bounds.Top; y < bounds.Bottom; y++)
                 {
-                    Field[x + xPos, y + yPos].IsWall = false;
+                    var tile = Field[x + xPos, y + yPos];
+
+                    if (tile.IsWall)
+                    {
+                        tile.Terrain = TileType.Debris;
+                    }
                 }
             }
 

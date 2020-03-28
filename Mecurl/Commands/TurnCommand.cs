@@ -1,4 +1,5 @@
 ﻿using Engine;
+using Engine.Map;
 using Mecurl.Actors;
 using Optional;
 using System;
@@ -79,8 +80,7 @@ namespace Mecurl.Commands
 
                         if (tile.IsWall)
                         {
-                            tile.IsWall = false;
-                            tile.Symbol = CharUtils.GetRubbleSymbol();
+                            tile.Terrain = TileType.Debris;
                         }
 
                         (char mechTile, _, int mechId) = Game.MapHandler.MechTileMap[newX, newY];

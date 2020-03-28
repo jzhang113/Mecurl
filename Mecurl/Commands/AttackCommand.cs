@@ -66,10 +66,7 @@ namespace Mecurl.Commands
                 Tile tile = Game.MapHandler.Field[loc];
                 if (tile.IsWall)
                 {
-                    tile.IsWall = false;
-
-                    // TODO: formalize tile types + add score penalty for destroying buildings
-                    tile.Symbol = CharUtils.GetRubbleSymbol();
+                    tile.Terrain = TileType.Debris;
                 }
             }
 

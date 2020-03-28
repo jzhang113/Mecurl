@@ -211,7 +211,7 @@ namespace Mecurl.Actors
                         if (!tile.IsWall)
                         {
                             tile.Color = Color.Gray;
-                            tile.Symbol = CharUtils.GetRubbleSymbol();
+                            tile.Terrain = TileType.Debris;
                         }
                     }
                 }

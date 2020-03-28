@@ -35,7 +35,7 @@ namespace Mecurl.CityGen
                 {
                     foreach (Loc loc in island)
                     {
-                        Map.Field[loc].IsWall = false;
+                        Map.Field[loc].Terrain = TileType.Grass;
                     }
                 }
                 else
@@ -95,8 +95,7 @@ namespace Mecurl.CityGen
                     {
                         foreach (Loc loc in FindBoundary(subregions[i], i, visited))
                         {
-                            Map.Field[loc].IsWall = false;
-                            Map.Field[loc].Symbol = '"';
+                            Map.Field[loc].Terrain = TileType.Grass;
                             Map.Field[loc].Color = Color.DarkGreen.Blend(Color.White, Game.VisRand.NextDouble() * 0.5 + 0.1);
                         }
                     }
@@ -195,7 +194,7 @@ namespace Mecurl.CityGen
             {
                 foreach (Loc s in Map.GetPointsInRadius(loc, road.Width, Measure.Manhatten))
                 {
-                    Map.Field[s].IsWall = false;
+                    Map.Field[s].Terrain = TileType.Ground;
                 }
             }
         }

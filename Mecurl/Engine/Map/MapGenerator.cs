@@ -68,7 +68,7 @@ namespace Engine.Map
                 {
                     // Don't excavate the edges of the map
                     if (PointOnMap(i, j))
-                        Map.Field[i, j].IsWall = false;
+                        Map.Field[i, j].Terrain = TileType.Ground;
                 }
             }
         }
@@ -81,7 +81,7 @@ namespace Engine.Map
                 for (int j = room.Top; j <= room.Bottom; j++)
                 {
                     if (PointOnMap(i, j))
-                        Map.Field[i, j].IsWall = false;
+                        Map.Field[i, j].Terrain = TileType.Ground;
                 }
             }
         }

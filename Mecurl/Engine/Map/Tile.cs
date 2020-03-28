@@ -4,12 +4,33 @@ using System.Drawing;
 
 namespace Engine.Map
 {
+    public enum TileType
+    {
+        Wall, Ground, Debris, Grass
+    }
+
     public class Tile
     {
         public int X { get; }
         public int Y { get; }
         public Color Color { get; internal set; }
-        public char Symbol { get; internal set; }
+        public char Symbol { get; private set; }
+        public TileType Terrain
+        {
+            get => _terrain;
+            internal set
+            {
+                _terrain = value;
+                Symbol = _terrain switch
+                {
+                    TileType.Wall => '#',
+                    TileType.Grass => '"',
+                    TileType.Ground => '.',
+                    TileType.Debris => GetRubbleSymbol(),
+                    _ => ' ',
+                };
+            }
+        }
 
         public float Light
         {
@@ -32,35 +53,52 @@ namespace Engine.Map
         public bool LosExists { get; internal set; }
 
         public bool IsVisible => LosExists && Light > EngineConsts.MIN_VISIBLE_LIGHT_LEVEL;
-        public bool IsWall { get; set; }
+        public bool IsWall => Terrain == TileType.Wall;
         public bool IsWalkable => !IsWall && !IsOccupied;
         public bool IsLightable => !IsWall && !BlocksLight;
 
         private float _light;
+        private TileType _terrain;
 
         public Tile(int x, int y, in Color color)
         {
             X = x;
             Y = y;
-            IsWall = true;
             Color = color;
-            Symbol = '.';
+            Terrain = TileType.Wall;
         }
 
         public void Draw(LayerInfo layer)
         {
             int dispX = X - Camera.X;
             int dispY = Y - Camera.Y;
-            Terminal.Color(Color);
 
-            if (IsWall)
+            Terminal.Color(Color);
+            layer.Put(dispX, dispY, Symbol);
+        }
+
+        private static char GetRubbleSymbol()
+        {
+            double rubble = BaseGame.VisRand.NextDouble();
+            if (rubble < 0.07)
             {
-                layer.Put(dispX, dispY, '#');
+                return '~';
+            }
+            if (rubble < 0.3)
+            {
+                return '`';
+            }
+            if (rubble < 0.5)
+            {
+                return ';';
+            }
+            else if (rubble < 0.8)
+            {
+                return ',';
             }
             else
             {
-                // Terminal.Color(Colors.Floor);
-                layer.Put(dispX, dispY, Symbol);
+                return '.';
             }
         }
     }

@@ -1,4 +1,5 @@
 ﻿using Engine;
+using Engine.Map;
 using Mecurl.Actors;
 using Optional;
 using System;
@@ -60,8 +61,7 @@ namespace Mecurl.Commands
                                 return Option.None<ICommand>();
                             }
 
-                            tile.IsWall = false;
-                            tile.Symbol = CharUtils.GetRubbleSymbol();
+                            tile.Terrain = TileType.Debris;
 
                             // wall walking is penalized by a speed reduction (but only apply this penalty once)
                             wallPenalty = true;
