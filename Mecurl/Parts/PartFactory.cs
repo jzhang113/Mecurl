@@ -43,6 +43,7 @@ namespace Mecurl.Parts
             p.Add(new StabilityComponent(50));
             p.Add(new HeatComponent(4, 0, 0, 0));
             p.Add(new SpeedComponent(15));
+            p.Add(new AmmoComponent(2, 99, 10));
             p.Add(new ActivateComponent(target, attack, cooldown));
             return p;
         }

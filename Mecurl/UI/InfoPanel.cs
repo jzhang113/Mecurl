@@ -108,6 +108,7 @@ namespace Mecurl.UI
                     p.Get<ActivateComponent>().MatchSome(w =>
                     {
                         double cooldown = layer.Width - layer.Width * w.CurrentCooldown / w.Cooldown;
+                        if (cooldown < 0) cooldown = 0;
 
                         if (w.CurrentCooldown == 0)
                         {
@@ -154,7 +155,14 @@ namespace Mecurl.UI
             p.Get<ActivateComponent>().Match(
                 some: comp =>
                 {
-                    layer.Print(1, yStart + 1, $"Rchg:{comp.CurrentCooldown}");
+                    if (comp.CurrentCooldown >= 0)
+                    {
+                        layer.Print(1, yStart + 1, $"Rchg:{comp.CurrentCooldown}");
+                    }
+                    else
+                    {
+                        layer.Print(1, yStart + 1, $"Rchg:RELOAD");
+                    }
                 },
                 none: () =>
                 {
@@ -164,7 +172,7 @@ namespace Mecurl.UI
             p.Get<AmmoComponent>().Match(
                 some: comp =>
                 {
-                    layer.Print(1, yStart + 2, $"Ammo:{comp.Remaining}");
+                    layer.Print(1, yStart + 2, $"Ammo:{comp.Loaded}/{comp.Capacity}");
                 },
                 none: () =>
                 {

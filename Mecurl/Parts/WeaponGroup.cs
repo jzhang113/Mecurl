@@ -3,6 +3,7 @@ using Mecurl.Actors;
 using Mecurl.Parts.Components;
 using Mecurl.State;
 using Optional;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 
@@ -33,13 +34,14 @@ namespace Mecurl.Parts
             {
                 Part part = Groups[group][weaponIndex];
                 return part.Get<ActivateComponent>().Match(
-                    some: comp => {
+                    some: comp =>
+                    {
                         if (comp.CurrentCooldown > 0) return Option.None<ICommand>();
 
                         if (mech is Player)
-                            return PlayerFireMethod(mech, part.Name, comp, part.Get<HeatComponent>());
+                            return PlayerFireMethod(mech, part, comp);
                         else
-                            return AiFireMethod(mech, comp, part.Get<HeatComponent>());
+                            return AiFireMethod(mech, part, comp);
                     },
                     none: () => Option.None<ICommand>());
             }
@@ -109,44 +111,66 @@ namespace Mecurl.Parts
             });
         }
 
-        internal Option<ICommand> AiFireMethod(Mech m, ActivateComponent ac, Option<HeatComponent> hc)
+        internal Option<ICommand> AiFireMethod(Mech m, Part p, ActivateComponent ac)
         {
             foreach (var loc in ac.Target.GetAllValidTargets(m.Pos, m.Facing, Measure.Euclidean, true))
             {
                 if (loc == Game.Player.Pos)
                 {
-                    hc.MatchSome(comp => m.UpdateHeat(comp.HeatGenerated));
-                    m.PartHandler.WeaponGroup.UpdateState(ac);
                     var targets = ac.Target.GetTilesInRange(m.Pos, loc, Measure.Euclidean);
-                    return Option.Some(ac.Activate(m, targets));
+                    return BuildFireCommand(m, p, ac, targets);
                 }
             }
 
             return Option.None<ICommand>();
         }
 
-        private Option<ICommand> PlayerFireMethod(Mech m, string name, ActivateComponent ac, Option<HeatComponent> hc)
+        private Option<ICommand> PlayerFireMethod(Mech m, Part p, ActivateComponent ac)
         {
             Game.StateHandler.PushState(new TargettingState(Game.MapHandler, m, Measure.Euclidean,
                 ac.Target, targets =>
                 {
                     Game.StateHandler.PopState();
-                    Game.MessagePanel.Add($"[color=info]Info[/color]: {name} fired");
+                    Game.MessagePanel.Add($"[color=info]Info[/color]: {p.Name} fired");
 
-                    hc.MatchSome(comp => m.UpdateHeat(comp.HeatGenerated));
-                    m.PartHandler.WeaponGroup.UpdateState(ac);
-
-                    return Option.Some(ac.Activate(m, targets));
+                    return BuildFireCommand(m, p, ac, targets);
                 }));
 
             return Option.None<ICommand>();
         }
 
-        // handling state stuff that needs to happen after the weapon has been fired
-        internal void UpdateState(ActivateComponent weapon)
+        private Option<ICommand> BuildFireCommand(Mech m, Part p, ActivateComponent ac, IEnumerable<Loc> targets)
+        {
+            p.Get<HeatComponent>().MatchSome(hc => m.UpdateHeat(hc.HeatGenerated));
+            return p.Get<AmmoComponent>().Match(some: ammo =>
+                {
+                    if (ammo.Loaded > 1)
+                    {
+                        ammo.Loaded--;
+                        UpdateCooldown(ac, ac.Cooldown);
+                        return Option.Some(ac.Activate(m, targets));
+                    }
+                    else
+                    {
+                        int rounds = Math.Min(ammo.Capacity, ammo.Remaining);
+                        ammo.Loaded = rounds;
+                        ammo.Remaining -= rounds;
+                        // use the cooldown instead of the usual one
+                        UpdateCooldown(ac, ammo.Reload);
+                        return Option.Some<ICommand>(new Commands.WaitCommand(120));
+                    }
+                },
+                none: () =>
+                {
+                    UpdateCooldown(ac, ac.Cooldown);
+                    return Option.Some(ac.Activate(m, targets));
+                });
+        }
+
+        private void UpdateCooldown(ActivateComponent weapon, int cooldown)
         {
             // update cooldown
-            weapon.CurrentCooldown = weapon.Cooldown;
+            weapon.CurrentCooldown = cooldown;
             List<Part> group = Groups[weapon.Group];
             int minCooldown = weapon.CurrentCooldown;
             int currIndex = _nextWeapon[weapon.Group];
