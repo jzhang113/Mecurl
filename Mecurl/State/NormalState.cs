@@ -21,21 +21,22 @@ namespace Mecurl.State
         public Option<ICommand> HandleKeyInput(int key)
         {
             Mech player = (Mech)BaseGame.Player;
-            
+            (int px, int py) = player.Pos;
+
             switch (InputMapping.GetNormalInput(key))
             {
                 case NormalInput.None:
                     return Option.None<ICommand>();
 
                 #region Movement Keys
-                case NormalInput.StrafeLeft:
-                    return Option.Some<ICommand>(new MoveCommand(player, player.Pos + player.Facing.Left().Left()));
-                case NormalInput.Backward:
-                    return Option.Some<ICommand>(new MoveCommand(player, player.Pos - player.Facing));
-                case NormalInput.Forward:
-                    return Option.Some<ICommand>(new MoveCommand(player, player.Pos + player.Facing));
-                case NormalInput.StrafeRight:
-                    return Option.Some<ICommand>(new MoveCommand(player, player.Pos + player.Facing.Right().Right()));
+                case NormalInput.MoveLeft:
+                    return Option.Some<ICommand>(new MoveCommand(player, new Loc(px - 1, py)));
+                case NormalInput.MoveDown:
+                    return Option.Some<ICommand>(new MoveCommand(player, new Loc(px, py + 1)));
+                case NormalInput.MoveUp:
+                    return Option.Some<ICommand>(new MoveCommand(player, new Loc(px, py - 1)));
+                case NormalInput.MoveRight:
+                    return Option.Some<ICommand>(new MoveCommand(player, new Loc(px + 1, py)));
                 case NormalInput.TurnLeft:
                     return Option.Some<ICommand>(new TurnCommand(player, Math.PI / 2));
                 case NormalInput.TurnRight:

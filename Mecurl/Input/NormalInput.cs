@@ -5,10 +5,10 @@ namespace Mecurl.Input
     internal enum NormalInput
     {
         None,
-        Backward,
-        Forward,
-        StrafeRight,
-        StrafeLeft,
+        MoveDown,
+        MoveUp,
+        MoveRight,
+        MoveLeft,
         TurnLeft,
         TurnRight,
         WeaponGroup1,
